@@ -1,0 +1,23 @@
+<apex:component controller="IntranetRecentArticleController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet chatter" type="String" assignTo="{!currentPage}"/>
+<style>
+	.newsLink {
+			font-size: 12px;
+			padding: 12px 0 4px 15px;
+			posiiton:absolute;
+	}
+	.sideContent p:hover > a{
+		text-decoration: underline !important;
+	}
+</style>
+<apex:outputPanel id="descriptionSection" title="Resources" >   
+ <div class="side recentNews">
+	<h2 style="display:block;">Recent News</h2>
+		<div class="sideContent">
+			<apex:repeat value="{!newsList}" var="news" >
+         <p> <a class="articleLink" href="{!IF(news.Article_Type__c == 'External',news.URL__c,'/apex/IntranetContent?id='+news.Id+'&category=News&tabName='+currentpage)}" > {!news.name} </a></p>
+       </apex:repeat>
+	  </div>
+ </div>
+</apex:outputPanel>
+</apex:component>

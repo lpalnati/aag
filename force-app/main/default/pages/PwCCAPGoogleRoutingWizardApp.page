@@ -1,0 +1,26 @@
+<apex:page cache="true" expires="60" applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardStylesheets="false">
+<script type="text/javascript">
+	var routingWizard = angular.module( "routingWizard", [
+		'uiGmapgoogle-maps',
+		'routingWizardUtils',
+		'routingWizardControllers',
+		'routingWizardServices',
+		'btorfs.multiselect',
+		'ng-sortable',
+		'ngSanitize',
+		'720kb.datepicker'
+		]);
+
+	routingWizard.config(function(uiGmapGoogleMapApiProvider) {
+		uiGmapGoogleMapApiProvider.configure({
+			key: '{!$Label.Google_Javascript_API_Key}',
+			v: '3.20', //defaults to latest 3.X anyhow
+			libraries: 'places' // Required for SearchBox.
+      });
+    })
+
+	routingWizard.controllers = angular.module('routingWizardControllers', []);
+	routingWizard.services = angular.module('routingWizardServices', []);
+	routingWizard.utils = angular.module('routingWizardUtils', []);
+</script>
+</apex:page>

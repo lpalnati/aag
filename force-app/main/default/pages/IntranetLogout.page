@@ -1,0 +1,17 @@
+<apex:page showHeader="false" sidebar="false">
+<apex:iframe src="/secur/logout.jsp" height="1" width="1" />
+<script>
+	function redirectToLogin(){
+		window.parent.location="https://secauth.virginamerica.com/secureauth8/restart.aspx";
+	}
+	setTimeout("redirectToLogin()", 25000);
+</script>
+<apex:outputpanel >
+ <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;height: 100%;width:100%;"> 
+ 	<div class="waitingHolder" style="top: 50%; width: 100px;">
+  	<img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+    <span class="waitingDescription">Logging out...</span>
+  </div>
+ </div>
+</apex:outputpanel>
+</apex:page>

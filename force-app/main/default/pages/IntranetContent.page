@@ -1,0 +1,297 @@
+<!-- (c) 2014 Appirio, Inc. -->
+<!-- Modified By : Ashish Sharma -->
+<!-- Modified Date : 7th November, 2014 -->
+<!-- Ref. : T-330975 - Resolve text formatting issues in Intranet Articles -->
+<!-- Modification Description : Fixed font for NewsDescription -->
+<apex:page sidebar="false" showheader="false" standardStylesheets="true" controller="IntranetContentController"> 
+<head>
+  <link rel="Stylesheet" type="text/css" href="{!$Resource.Banner_FlexiSlider}/css/flexslider.css"></link>
+  <script type="text/javascript" src="{!$Resource.ImageSlider}/ImageSlider/js/jquery-1.7.1.min.js"></script>
+  <script type="text/javascript" src="{!$Resource.ImageSlider}/ImageSlider/js/jquery.flexslider.js"></script>
+  <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+  <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+  <script>
+     function openPopupInIframe(flag) {
+     //alert($(window).height()); 
+       if(flag == 1) { 
+         $('#divImages').hide();
+         if('{!cmsPage.Video_Type__c}' == 'YouTube'){
+           $('#uVideo').html('<iframe id="yVideoFrame" width="560" height="315" src="http://www.youtube.com/embed/{!cmsPage.Video__c}" frameborder="0" allowfullscreen="true"></iframe>');
+         }            
+         else{
+           $("#vVideo").html('<iframe id="vVideoFrame" width="560" height="315" src="http://player.vimeo.com/video/{!cmsPage.Video__c}" frameborder="0" allowfullscreen="true"></iframe>');
+         }
+         
+         $('#divIframe').show();    
+       } else {
+         $('#divImages').show();
+         $('#divIframe').hide();
+       }
+       $('#bgLocked').addClass('background');
+       $('#modalPopup').addClass('modal');
+       $('#bgLocked').fadeIn('slow');
+       $('#modalPopup').fadeIn('slow');
+         
+      var popup_height = document.getElementById('modalPopup').offsetHeight;
+      var popup_width = document.getElementById('modalPopup').offsetWidth;
+      if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) {   
+        $(".modal").css('left','0px');
+      }else{
+        $(".modal").css('left',((screen.width - popup_width)/2));
+      }
+    
+      $('.flexslider').flexslider({
+        animation: "slide",
+        slideshowSpeed: '{!banner_Roating_Speed}',
+        controlNav: false
+      });
+      if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)){
+          $("#yVideoFrame").attr("height","225");
+          $("#yVideoFrame").attr("width","270");
+          $("#vVideoFrame").attr("height","225");
+          $("#vVideoFrame").attr("width","270");
+      }
+     }
+        
+    function closeIframe() {
+      $("#vVideo").html('');
+      $("#uVideo").html('');
+      $('#bgLocked').fadeOut('slow');
+      $('#modalPopup').fadeOut('slow');
+      $('#bgLocked').removeClass('background');
+      $('#modalPopup').removeClass('modal');
+    }
+  </script>
+  <style>
+    .publishercontainer .publishertextarea {
+    	width:98%;
+    }
+    .flexslider ul li {
+       margin-left: 0px;
+       padding-left: 0;
+    }
+    .menuWrapper ul li {
+       margin-left: 0px;
+       padding-left: 0;
+    }
+    #publishersharebutton{
+    	background-color: #8ab529 !important;
+      font-family: Arial !important;
+      font-size: 1.08em !important;
+      background-color: #8ab529 !important;
+      border: 1px solid #6c8049 !important;
+      background-image: -ms-linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+      background-image: -moz-linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+      background-image: -webkit-linear-gradient(top, #3079ED 0,#3079ED 100%) !important;
+      background-image: linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+      display: inline-block !important;
+      padding-top: 0 !important;
+      padding-bottom: 1px !important;
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+      height: 30px !important;
+      color: #fff !important;
+      -moz-border-radius: 3px !important;
+      border-radius: 2px !important;
+      -moz-box-shadow: 0 1px 2px 0 #adadad !important;
+      -webkit-box-shadow: 0 1px 2px 0 #adadad !important;
+      box-shadow: 0 1px 2px 0 #adadad !important;
+      margin: 0 !important;
+    }
+        
+  /* This gives us the styling for the background */
+    .background {
+        background-color: black;
+        opacity: 90%;
+        filter:alpha(opacity=90);
+        background-color: rgba(0,0,0,0.90);
+        width: 100%;
+        min-height: 100%;
+        overflow: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: white;
+        z-index: 998;
+    
+    }
+    .slides {
+        z-index : 0 !important;
+    }
+    .mainContent .multimedia {
+        float:none !important;
+        width: initial !important;
+        clear:both;
+    }
+    #modalImage {
+        max-height: 430px;
+    }
+    .carousel li{
+    		margin-right:0px !important;
+    }
+    
+     @media only screen and (max-device-width: 767px){
+       .publishercontainer input[type="text"], .publishercontainer .panel textarea {
+          padding:0px !important;
+       }
+       .fileFormInputElement {
+           width: 155px !important;
+           margin-right: 260px !important;
+       }
+       .publisherpollchoiceinput {
+           width: 240px !important;
+           margin-right: 260px !important;
+       }
+       .publishercontainer li.publisherFeedItemTypeChoice{
+       	margin-right:0px !important;
+       }   
+     }
+     
+     b{
+     	 font-weight: bold; 
+     }
+     
+     i{
+     	font-style: italic;
+     }
+</style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <c:IntranetHeader />
+        <div class="content">
+        <c:IntranetMenu />
+          <div>
+              <p class="contentTitle"><apex:outputText value="{!categoryType}" rendered="{!categoryType != 'Content'}"/></p>
+          </div>
+        <!-- main -->
+        <div class="main" style="width:auto;">
+          <div class="mainContent">
+            <div>
+                <p style="font-size: 17px;">
+                    <apex:outputText value="{!cmsPage.Name}"  rendered="{!renderAttachment}"/>
+                    <apex:outputText value="{!articleDetail.Name}" rendered="{!IF(categoryType=='News',true,false)}"/>
+                </p>
+            </div>
+            <div class="multimedia">
+              <div style="float:left;">
+							 <!--  start of images slider on main page -->
+							 	<div class="carousel" style="{!IF(galleryAttachmentList.size > 0,'display:block;Width:280px;height:200px;margin:5px;','display:none;')}">
+								 	<div class="flexslider" id="imageslider">
+					        	<ul class="slides">        
+					          	<apex:repeat value="{!galleryAttachmentList}" var="gallery">
+					            	<li>
+					            		<div align="center">
+		              	    		<img src="/servlet/servlet.FileDownload?file={!gallery.Id}&otherId=" style="width:100%;height:186px;" onClick="openPopupInIframe(0);"/>
+		              	    	</div>
+					              </li>   
+					            </apex:repeat>   
+					         </ul>
+					       	</div>
+				       	</div>
+							 <!--  end of images slider on main page -->
+               <apex:image onclick="openPopupInIframe(1);" value="http://i1.ytimg.com/vi/{!cmsPage.Video__c}/default.jpg" height="186px" width="280px"  rendered="{!renderAttachment && cmsPage.Video_Type__c == 'YouTube'}" style="margin:5px;display:block;"/>
+               <apex:outputPanel rendered="{!renderAttachment && cmsPage.Video_Type__c == 'Vimeo'}" style="margin:5px;display:block;">
+	             <a href="#" onclick="openPopupInIframe(1);" class="big" id = 'aVdo'>
+	                 <script type="text/javascript">
+	                 $.ajax({
+	                     type:'GET',
+	                     url: 'https://vimeo.com/api/v2/video/'+{!cmsPage.Video__c}+'.json',
+	                     jsonp: 'callback',
+	                     dataType: 'jsonp',
+	                     success: function(data){
+	                         var thumbnail_src = data[0].thumbnail_large;
+	                         $('#aVdo').append('<img id="vimeoImg" src="' + thumbnail_src + '" height="186px" width="280px"/>');
+	                     }
+	                 });
+	                 </script>       
+	                 </a>
+               </apex:outputPanel>
+             </div>  
+             	<apex:outputText styleClass="contentDescription" value="{!cmsPage.Description__c}"  escape="false" rendered="{!renderAttachment}"/> 
+             	<apex:outputText styleClass="newsDescription" value="{!articleDetail.Description__c}" escape="false" rendered="{!IF(categoryType=='News',true,false)}"/>  
+             <div style="clear: both;"></div>                 
+           </div>
+          </div>
+
+        <!-- chatter -->
+        <apex:outputPanel rendered="{!IF(categoryType=='News',true,false)}">
+        <div class="liveChatter">
+            <div class="titleWrapper">
+                <div class="title">
+                    Chatter
+                </div>
+            </div>
+            <div class="chatterWrapper" style="padding: 5px;font-size: 12px;">
+                <chatter:feed entityId="{!articleDetail.Id}"></chatter:feed>                        
+            </div>
+        </div>
+        </apex:outputPanel>
+        <!-- end of chatter -->
+    </div>
+    <!-- end of main -->
+
+    <apex:outputPanel rendered="{!IF(categoryType=='News',true,false)}">
+    <div class="sideWrapper">
+            <c:IntranetRecentArticle pageId="{!tabName}"/>
+    </div>
+    </apex:outputPanel>
+    <div class="clear"></div>
+    </div>
+</div>
+<c:IntranetFooter />
+<div id="bgLocked" style="display:none;height: 600%;"></div>
+  <div id="modalPopup" style="display:none;">   
+    <div style="text-align:right;">
+      <!--  <apex:outputLink onclick="javascript: closeIframe(); return false;">X</apex:outputLink>  -->
+      <div style="cursor: pointer;" onclick="javscript: closeIframe();">X</div>
+   </div><br/>
+   <div id="divImages"> 
+       <div class="flexslider">
+         <ul class="slides">        
+            <apex:repeat value="{!galleryAttachmentList}" var="gallery">
+               <li>
+                 	<img src="/servlet/servlet.FileDownload?file={!gallery.Id}&otherId=" id="modalImage"/>
+               </li>   
+            </apex:repeat>   
+         </ul>
+       </div>
+    </div>
+    <apex:outputPanel rendered="{!renderAttachment}">
+      <div id="divIframe" style="text-align:center">
+        <apex:outputPanel rendered="{!cmsPage.Video_Type__c == 'YouTube'}" styleClass="firstPanel">
+         <div id="uVideo" style="margin-bottom: 30px;"></div>
+         <apex:outputLabel value="{!cmsPage.Video_Caption__c}" />
+        </apex:outputPanel>
+         
+        <apex:outputPanel rendered="{!cmsPage.Video_Type__c == 'Vimeo'}"  styleClass="secondPanel">
+         <div id="vVideo"></div>
+         <apex:outputLabel value="{!cmsPage.Video_Caption__c}" />
+        </apex:outputPanel>
+      </div>
+    </apex:outputPanel>
+  </div> 
+</body>  
+<script>
+$(document).ready(function(){
+		$('#imageslider').flexslider({
+        animation: "slide",
+        width: 800,
+        slideshowSpeed: '{!banner_Roating_Speed}',
+        controlNav: false
+    });
+    if(screen.width > 800) {
+      if('{!categoryType}' == 'Content') {
+         $('.mainContent').css('width','auto');
+      }
+    }
+  	$('.zen-trigger b').removeClass('zen-selectArrow');
+  	
+  	$(".newsDescription").find('*').removeAttr("style");
+});
+</script>
+</apex:page>

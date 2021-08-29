@@ -1,0 +1,208 @@
+<apex:page controller="IntranetAssignUsersToAllVirginGroupCon">
+<script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript">
+  function checkAll(cb,cbid) {
+     var inputElem = document.getElementsByTagName("input");                     
+     for(var i=0; i<inputElem.length; i++)
+     {             
+          if(inputElem[i].id.indexOf(cbid)!=-1){                                        
+             inputElem[i].checked = cb.checked;
+         }
+     }
+  }
+  
+   var currentIndex = 1;
+   var numberOfLinks = 1;
+   function setCurrentPage(index) {
+       if(currentIndex != index) {
+           currentIndex = parseInt(index);
+           getpage(currentIndex);
+       }
+   }
+   function next() {
+       if(currentIndex < numberOfLinks) {
+       currentIndex = currentIndex + 1;
+       getpage(currentIndex);
+       } 
+   }
+   function previous() {
+       if(currentIndex > 1) {
+        currentIndex = currentIndex - 1;
+        getpage(currentIndex);
+       } 
+   }
+   function setPublicPaginationStyle(cIndex, noLinks) {
+       currentIndex = cIndex;
+       numberOfLinks = noLinks;
+      if(currentIndex == numberOfLinks) {
+          $("#nextDown").removeClass("next").addClass("notNext");
+      } else {
+          $("#nextDown").removeClass("notNext").addClass("next");
+      }
+      if(currentIndex == 1) {
+          $("#previousDown").removeClass("prev").addClass("notPrevious");
+      } else {
+          $("#previousDown").removeClass("notPrevious").addClass("prev");
+      }
+   }
+   
+   var currentIndexC = 1;
+   var numberOfLinksC = 1;
+   function setCurrentPageC(index) {
+       if(currentIndexC != index) {
+           currentIndexC = parseInt(index);
+           getpageC(currentIndexC);
+       }
+   }
+   function nextC() {
+       if(currentIndexC < numberOfLinksC) {
+       currentIndexC = currentIndexC + 1;
+       getpageC(currentIndexC);
+       } 
+   }
+   function previousC() {
+       if(currentIndexC > 1) {
+        currentIndexC = currentIndexC - 1;
+        getpageC(currentIndexC);
+       } 
+   }
+   function setChatterPaginationStyle(cIndex, noLinks) {
+       currentIndexC = cIndex;
+       numberOfLinksC = noLinks;
+      if(currentIndexC == numberOfLinksC) {
+          $("#chatNextDown").removeClass("next").addClass("notNext");
+      } else {
+          $("#chatNextDown").removeClass("notNext").addClass("next");
+      }
+      if(currentIndexC == 1) {
+          $("#nextPreviousDown").removeClass("prev").addClass("notPrevious");
+      } else {
+          $("#nextPreviousDown").removeClass("notPrevious").addClass("prev");
+      }
+   }
+</script>
+<style>
+	.pagination {
+	  font-size: 80%;
+  }
+  .pagination a, .pagination span {
+     display: block;
+     float: left;
+     padding: 0.3em 0.5em;
+     margin-right: 5px;
+     margin-bottom: 5px;
+  }
+  .pagination .current {
+      color:#e0262b;
+  }
+  .pagination .current:hover {
+   color:#e0262b;
+  }
+  .pagination .notPrevious, .pagination .notNext{
+     color:#999;
+     border-color:#999;
+     background:#fff;
+     text-decoration:none;
+   }
+   a:hover{
+       text-decoration: none;
+   }
+ 	body a:hover{
+    text-decoration:none !important;
+ 	}
+</style>
+	<apex:form >
+		<apex:pageMessages id="error"/>
+  	<apex:actionFunction name="getpage" action="{!getNotPublicUserList}" rerender="notPublicUsersSection" status="status" oncomplete="$('.checkAll').attr('checked', false)"> 
+    	<apex:param value="" assignTo="{!selectedPageNumberPublic}" name="cPageNumber" />
+    </apex:actionFunction>
+    <apex:actionFunction name="getpageC" action="{!getNotChatterUserList}" rerender="notChatterUsersSection" status="status" oncomplete="$('.checkChatterUserAll').attr('checked', false)"> 
+    	<apex:param value="" assignTo="{!selectedPageNumberChatter}" name="cPageNumber" />
+    </apex:actionFunction>
+		<apex:pageBlock >
+			<apex:pageBlockSection title="Add Users to All Virgin America public group" columns="1">
+				<apex:outputPanel rendered="{!userToAddPublicGroup.size == 0}">All users are added to All Virgin America public group.</apex:outputPanel>
+				<apex:outputPanel rendered="{!userToAddPublicGroup.size > 0}" id="notPublicUsersSection">
+					<apex:CommandButton action="{!addToAllVirginPublicGroup}" value="Add To Group" style="margin-left:40%"/>
+					<apex:PageBlockTable value="{!userToAddPublicGroup}"  var="pubGroup" id="notPublicUsersTable">
+						<apex:column >
+              <apex:facet name="header"><apex:inputCheckbox styleClass="checkAll" onclick="checkAll(this,'checkedonepublic')"/></apex:facet>
+              <apex:inputCheckbox value="{!pubGroup.isSelected}" id="checkedonepublic"/>
+            </apex:column>  
+            <apex:column headerValue="Name" value="{!pubGroup.user.Name}"/>
+            <apex:column headerValue="Email">
+            	<apex:outputText value="{!pubGroup.user.Email}"/>
+            </apex:column>
+            <apex:column headerValue="Profile" value="{!pubGroup.user.Profile.Name}"/>
+					</apex:PageBlockTable>
+					    <table width="100%" style="margin-top: 8px;">
+                <tr>
+                  <td>&nbsp;</td>
+                <td style="float: right;vertical-align: middle;font-size: 15px;">
+                    <div id="PaginationDown" class="pagination">
+                        <a href="#" class="notPrevious" id="previousDown" onClick="previous();return false;">Previous</a>
+                        <span style="{!IF(publicGroupPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <apex:repeat value="{!publicGroupPagination.listOfLinks}" var="number" > 
+                            <a href="#" style="{!IF(number == selectedPageNumberPublic,'text-decoration: none;','')}" 
+                                class="{!IF(number == selectedPageNumberPublic,'current','')}" onClick="setCurrentPage('{!number}');return false;">{!number}</a>
+                        </apex:repeat>
+                        <span style="{!IF(publicGroupPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <a id="nextDown" href="#" class="next" onClick="next();return false;">Next</a>
+                    </div>
+                </td>
+                </tr>
+            </table>
+            <script>setPublicPaginationStyle({!selectedPageNumberPublic},{!publicGroupPagination.totalPage});</script> 
+				</apex:outputPanel>
+			</apex:pageBlockSection>
+			<apex:pageBlockSection title="Add Users to All Virgin America Chatter group" columns="1">
+				<apex:outputPanel rendered="{!userToAddPublicGroup.size == 0}">All users are added to All Virgin America chatter group.</apex:outputPanel>
+				<apex:outputPanel rendered="{!userToAddChatterGroup.size > 0}" id="notChatterUsersSection">
+					<apex:CommandButton action="{!addToAllVirginChatterGroup}" value="Add To Group" style="margin-left:40%"/>
+					<apex:PageBlockTable value="{!userToAddChatterGroup}"  var="chatGroup" id="notChatterUsersTable">
+						<apex:column >
+              <apex:facet name="header"><apex:inputCheckbox styleClass="checkChatterUserAll" onclick="checkAll(this,'checkedonechatter')"/></apex:facet>
+              <apex:inputCheckbox value="{!chatGroup.isSelected}" id="checkedonechatter"/>
+            </apex:column>  
+            <apex:column headerValue="Name" value="{!chatGroup.user.Name}"/>
+            <apex:column headerValue="Email">
+            	<apex:outputText value="{!chatGroup.user.Email}" />
+            </apex:column>
+            <apex:column headerValue="Profile" value="{!chatGroup.user.Profile.Name}"/>
+					</apex:PageBlockTable>
+					    <table width="100%" style="margin-top: 8px;">
+                <tr>
+                  <td>&nbsp;</td>
+                <td style="float: right;vertical-align: middle;font-size: 15px;">
+                    <div id="PaginationDown" class="pagination">
+                        <a href="#" class="notPrevious" id="ChatPreviousDown" onClick="previousC();return false;">Previous</a>
+                        <span style="{!IF(chatterGroupPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <apex:repeat value="{!chatterGroupPagination.listOfLinks}" var="number" > 
+                            <a href="#" style="{!IF(number == selectedPageNumberChatter,'text-decoration: none;','')}" 
+                                class="{!IF(number == selectedPageNumberChatter,'current','')}" onClick="setCurrentPageC('{!number}');return false;">{!number}</a>
+                        </apex:repeat>
+                        <span style="{!IF(chatterGroupPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <a id="chatNextDown" href="#" class="next" onClick="nextC();return false;">Next</a>
+                    </div>
+                </td>
+                </tr>
+            </table>
+            <script>setChatterPaginationStyle({!selectedPageNumberChatter},{!chatterGroupPagination.totalPage});</script> 
+				</apex:outputPanel>
+			</apex:pageBlockSection>
+		</apex:pageBlock>
+		 <apex:outputpanel >
+		 	<apex:actionstatus id="status">
+				<apex:facet name="start">
+				  <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+				         height: 100%;opacity:0.65;width:100%;"> 
+				     <div class="waitingHolder" style="top: 50%; width: 100px;">
+				         <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+				         <span class="waitingDescription">Please Wait...</span>
+				     </div>
+				  </div>
+				</apex:facet>
+		</apex:actionstatus>
+</apex:outputpanel>
+	</apex:form>
+</apex:page>

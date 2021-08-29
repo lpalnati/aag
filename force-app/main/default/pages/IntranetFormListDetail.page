@@ -1,0 +1,60 @@
+<apex:page Controller="IntranetFormListDetailController" tabStyle="Form_List__tab">
+<script>
+	function back() {
+		window.location = '/apex/intranetFormListAdmin';
+	}
+</script>
+	<apex:form >
+    <apex:pageMessages id="error"/>
+    <apex:pageBlock title="Form Information">
+    	<apex:pageBlockButtons location="both">
+        <apex:commandButton value="Edit" action="{!edit}" rendered="{!!isEdit}"/>
+				<apex:commandButton value="Edit Permission" action="{!editPermission}" rendered="{!!isEdit}"/>
+        <apex:commandButton value="Back" onclick="back();return false;" rendered="{!!isEdit}"/>
+        <apex:commandButton value="save" action="{!save}" rendered="{!isEdit}"/>
+        <apex:commandButton value="Cancel" action="{!cancel}" rendered="{!isEdit}"/>
+    	</apex:pageBlockButtons>
+     	<apex:PageBlockSection title="Form Detail" collapsible="false">
+        <apex:PageBlockSectionItem >
+        	<Label>Form Name</Label>
+          <apex:outputField value="{!intranetformType.Name}"/>
+        </apex:PageBlockSectionItem>
+        <apex:PageBlockSectionItem >
+        	<Label>Active</Label>
+          <apex:outputField value="{!intranetformType.Active__c}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Selected Reviewer</Label>
+          <apex:outputText value="{!approver}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Skip Review/Approval</Label>
+          <apex:outputField value="{!intranetformType.Skip_Reviewer__c}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Form Category</Label>
+          <apex:outputField value="{!intranetformType.Form_Category__c}"/>
+         </apex:PageBlockSectionItem>
+     	</apex:PageBlockSection>
+    	<apex:PageBlockSection title="Selected Fields to Display" collapsible="false" columns="1">
+    		<apex:repeat value="{!intranetformType.IntranetFormListFields__r}" var="field">
+    		 <apex:PageBlockSectionItem rendered="{!!isEdit}">
+        	<Label>{!$ObjectType.Intranet_Form__c.fields[field.Field_API_Name__c].label}</Label>
+          <apex:outputField value="{!field.Required__c}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem rendered="{!isEdit}">
+        	<Label>{!$ObjectType.Intranet_Form__c.fields[field.Field_API_Name__c].label}</Label>
+          <apex:inputField value="{!field.Required__c}"/>
+         </apex:PageBlockSectionItem>
+        </apex:repeat> 
+    	</apex:PageBlockSection> 
+    	<apex:PageBlockSection title="Selected Reviewer" collapsible="false" columns="1">
+    		<apex:repeat value="{!selectedUsers}" var="user">
+	    		<apex:PageBlockSectionItem >
+	        	<Label style="padding: 11%;">{!user.Name}</Label>
+	         </apex:PageBlockSectionItem>
+        </apex:repeat>
+    	</apex:PageBlockSection>    
+  	</apex:pageBlock>
+	</apex:form>
+</apex:page>

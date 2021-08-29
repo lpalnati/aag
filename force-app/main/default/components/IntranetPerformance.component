@@ -1,0 +1,115 @@
+<!-- Last Modified 24th Nov, 2014   Ashish Sharma, Move placement of stock ticker information, move date on Performance box, and add link to Investor relations (Ref - T-336107) -->
+<!-- Last Modified 25th Nov, 2014   Ashish Sharma, Change color of font for stock quote text on hover, remove date, fix spelling(Ref - T-336378) -->
+<apex:component controller="IntranetPerformanceController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet performance" type="String" />
+<style>
+    .monthToDate{
+        display:block;
+    }
+    .quarterToDate{
+        display:none;
+    }
+    .yearToDate{
+        display:none;
+    }
+    .stockQuote{
+        color: #b3b3b3; 
+        font-size: 11px; 
+        padding: 0 0 0 25px;
+    }
+    
+    .stockQuote:hover{
+        color: #CB0900;
+    }
+</style>
+<script>
+    $(document).ready(function(){
+        $(".monthToDate > .performanceList:last").css('border-bottom','none');
+        $(".quarterToDate > .performanceList:last").css('border-bottom','none');
+        $(".yearToDate > .performanceList:last").css('border-bottom','none');       
+    });
+    function changeTimeFrame(currentLink,currentClass,disableLink1,disableClass1,disableLink2,disableClass2){
+        $("#"+currentLink).attr("class","active");
+        $("#"+disableLink1).attr("class","inactive");
+        $("#"+disableLink2).attr("class","inactive");
+        $("."+currentClass).css("display","block");
+        $("."+disableClass1).css("display","none");
+        $("."+disableClass2).css("display","none");
+        var arrowPosition = ((currentClass == 'monthToDate') ? '55px' : ((currentClass == 'quarterToDate')? '155px' : '250px'));
+        $(".arrow").css("left",arrowPosition);
+    }
+</script>
+<!-- performance card -->
+<div class="card last cardLastPhone">
+    <h2 style="display: block;">
+        Monthly Performance <span class="small"> <!-- Updated Performance Name -->
+          <!--  <a href="http://ir.virginamerica.com/phoenix.zhtml?c=253736&p=irol-stockChart" target="_blank" 
+               class="stockQuote"> 
+                <apex:outputText value="NASDAQ: VA - ${!stockQuote}"/>
+            </a> -->
+        </span>
+    </h2>
+    <div class="cardContent">
+        <div class="dateTabs">
+            <a href="javascript:void(0);" id="monthLink" class="active" onclick="changeTimeFrame('monthLink','monthToDate','quarterLink','quarterToDate','yearLink','yearToDate');"><span><span>Monthly</span></span></a> 
+            <!-- <a href="javascript:void(0);" id="quarterLink" class="inactive" onclick="changeTimeFrame('quarterLink','quarterToDate','monthLink','monthToDate','yearLink','yearToDate');"><span><span>Quarterly</span></span></a> -->
+                      <!-- <a href="javascript:void(0);" id="yearLink" class="inactive" onclick="changeTimeFrame('yearLink','yearToDate','quarterLink','quarterToDate','monthLink','monthToDate');"><span><span>Year to Date</span></span></a> -->
+            <div class="clear"></div>
+            <span class="arrow"></span>
+        </div>
+       <div class="monthToDate">
+        <apex:repeat value="{!monthlyPerformanceMap}" var="category">
+            <div class="performanceList">
+                <img src="{!$Resource.IntranetPerformanceImages}/{!LOWER(category)}Icon.png" alt=""/>
+                <div class="list">
+                    <h3>{!category}</h3>
+                    <dl>
+                        <apex:repeat value="{!monthlyPerformanceMap[category]}" var="ops">
+                            <dt>{!$ObjectType.Intranet_Performance__c.fields[ops.fieldAPIName].label}</dt>
+                            <dd>{!IF(ops.fieldDataType == 'CURRENCY' ,'$','')}{!IF(ops.fieldDataType == 'CURRENCY' || ops.fieldAPIName == 'YTD_injuries__c' || ops.fieldAPIName == 'Per_month_injuries__c' || ops.fieldAPIName == 'On_time_arrivals_A14__c' || ops.fieldAPIName == 'On_time_departures_D5__c' || ops.fieldAPIName == 'Completion_Factor__c' || ops.fieldAPIName == 'Load_Factor__c', ROUND(ops.fieldValue,2), ROUND(ops.fieldValue,0))}{!IF(ops.fieldDataType == 'PERCENT' ,'%','')}    
+                            </dd>
+                        </apex:repeat>
+                    </dl>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </apex:Repeat>
+        </div> 
+         <!--<div class="quarterToDate">
+        <apex:repeat value="{!quarterlyPerformanceMap}" var="category">
+            <div class="performanceList">
+                <img src="{!$Resource.IntranetPerformanceImages}/{!LOWER(category)}Icon.png" alt=""/>
+                <div class="list">
+                    <h3>{!category}</h3>
+                    <dl>
+                        <apex:repeat value="{!quarterlyPerformanceMap[category]}" var="ops">
+                            <dt>{!$ObjectType.Intranet_Performance__c.fields[ops.fieldAPIName].label}</dt> 
+                            <dd>{!IF(ops.fieldDataType == 'CURRENCY' ,'$','')}{!IF(ops.fieldDataType == 'CURRENCY'|| ops.fieldAPIName == 'YTD_injuries__c' || ops.fieldAPIName == 'Per_month_injuries__c' || ops.fieldAPIName == 'On_time_arrivals_A14__c' || ops.fieldAPIName == 'On_time_departures_D5__c' || ops.fieldAPIName == 'Completion_Factor__c' || ops.fieldAPIName == 'Load_Factor__c',ROUND(ops.fieldValue,2), ROUND(ops.fieldValue,0))}{!IF(ops.fieldDataType == 'PERCENT' ,'%','')}</dd>
+                        </apex:repeat>
+                    </dl>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </apex:Repeat>
+        </div> -->
+        <div class="yearToDate">
+        <apex:repeat value="{!yearlyPerformanceMap}" var="category">
+            <div class="performanceList">
+                <img src="{!$Resource.IntranetPerformanceImages}/{!LOWER(category)}Icon.png" alt=""/>
+                <div class="list">
+                    <h3>{!category}</h3>
+                    <dl>
+                        <apex:repeat value="{!yearlyPerformanceMap[category]}" var="ops">
+                            <dt>{!$ObjectType.Intranet_Performance__c.fields[ops.fieldAPIName].label}</dt>
+                            <dd>{!IF(ops.fieldDataType == 'CURRENCY' ,'$','')}{!IF(ops.fieldDataType == 'CURRENCY'|| ops.fieldAPIName == 'YTD_injuries__c' || ops.fieldAPIName == 'Per_month_injuries__c', ROUND(ops.fieldValue,2) , ROUND(ops.fieldValue,0))}{!IF(ops.fieldDataType == 'PERCENT' ,'%','')}</dd>
+                        </apex:repeat>
+                    </dl>
+                </div>
+                <div class="clear"></div> 
+            </div> 
+        </apex:Repeat>
+        </div> 
+    </div>
+</div>
+<!-- end of performance card -->
+</apex:component>

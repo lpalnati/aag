@@ -1,0 +1,171 @@
+<apex:component controller="IntranetMapCalendarController">
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false" type="text/javascript"></script>
+<style>
+	.grayBtnTeam{
+		margin-top:0px;
+	}
+</style>
+<apex:form >
+<!-- start of tab component -->
+    <div class="mapCalendarCard"> 
+     <div class="tabs">
+    <a href="javascript:void(0);" id="mapLink" class="active" onclick="changeComponent('mapLink','gMap','CalendarLink1','gCalendar1','CalendarLink2','gCalendar2','CalendarLink3','gCalendar3');" style="{!IF(ISNULL(CMSPage.Show_Google_Map__c),'display:none;','display:block;')}"><span><span>Map</span></span></a>
+    <a href="javascript:void(0);" id="CalendarLink1" class="inactive" onclick="changeComponent('CalendarLink1','gCalendar1','CalendarLink2','gCalendar2','CalendarLink3','gCalendar3','mapLink','gMap');" style="{!IF(CMSPage.Cal_1_Label__c == '' ,'display:none;','display:block;')}"><span><span>{!CMSPage.Cal_1_Label__c}</span></span></a>
+    <a href="javascript:void(0);" id="CalendarLink2" class="inactive" onclick="changeComponent('CalendarLink2','gCalendar2','CalendarLink1','gCalendar1','CalendarLink3','gCalendar3','mapLink','gMap');" style="{!IF(CMSPage.Cal_2_Label__c == '','display:none;','display:block;')}"><span><span>{!CMSPage.Cal_2_Label__c}</span></span></a>
+    <a href="javascript:void(0);" id="CalendarLink3" class="inactive" onclick="changeComponent('CalendarLink3','gCalendar3','CalendarLink2','gCalendar2','CalendarLink1','gCalendar1','mapLink','gMap');" style="{!IF(CMSPage.Cal_3_Label__c == '','display:none;','display:block;')}"><span><span>{!CMSPage.Cal_3_Label__c}</span></span></a>
+     <div class="clear"></div>
+        <span class="arrow"></span>
+    </div>
+    
+    <!-- start of calendar component -->
+    <apex:outputPanel layout="block" styleClass="gCalendar1" rendered="{!NOT(ISBLANK(CMSPage.Cal_1__c))}">
+        <div class="mapCalendarBoard"> 
+            <apex:outputText value="{!CMSPage.Cal_1__c}" escape="false"/> 
+            </div> 
+    </apex:outputPanel>
+    <apex:outputPanel layout="block" styleClass="gCalendar2" rendered="{!NOT(ISBLANK(CMSPage.Cal_2__c))}">
+        <div class="mapCalendarBoard"> 
+            <apex:outputText value="{!CMSPage.Cal_2__c}" escape="false"/> 
+            </div> 
+    </apex:outputPanel>
+    <apex:outputPanel layout="block" styleClass="gCalendar3" rendered="{!NOT(ISBLANK(CMSPage.Cal_3__c))}">
+        <div class="mapCalendarBoard"> 
+            <apex:outputText value="{!CMSPage.Cal_3__c}" escape="false"/> 
+            </div> 
+    </apex:outputPanel>
+    <!-- end of calendar component -->
+    
+    <!-- start of map component -->
+    <apex:outputPanel layout="block" styleClass="gMap" rendered="{!NOT(ISNULL(CMSPage.Show_Google_Map__c))}">
+        <div class="mapCalendarBoard">
+        <div style="margin: 3%;">
+        		<apex:selectList id="rt" value="{!selectedType}" multiselect="false" size="1" styleClass="text locationTypeList" rendered="{!locationTypeOptions.size > 0}">
+  						<apex:selectOptions value="{!locationTypeOptions}"/> 
+						</apex:selectList>
+            <apex:inputText value="{!searchLocationText}" styleClass="searchLocationField"/>
+            <apex:actionstatus id="status">
+            <apex:facet name="start">
+             <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+             </apex:facet>
+            </apex:actionstatus>
+                <a href="javascript:void(0);" onclick="searchLocation();return false;" class="grayBtn grayBtnTeam" style="float:right;"><span><span>Search</span></span></a>
+        </div>   
+        <apex:actionFunction name="searchLocation" action="{!searchLocation}" reRender="gMap" status="status" oncomplete="$('#MyInitialMap').css('display','none');"/>
+        <div id="MyInitialMap" style="width:100%;height:300px;margin: 0 auto;"></div>
+        <apex:outputPanel id="gMap">    
+            <apex:outputPanel id="MyMapError" style="width:100%;height:auto;padding-left:3%;" rendered="{!AND(NOT(ISBLANK(searchLocationText)),addressWrapperList.Size == 0)}">
+            	{!searchLocationText} not found.
+           	</apex:outputPanel>
+            <apex:outputPanel rendered="{!addressWrapperList.Size > 0}">
+                <script>initialize('{!allAddressString}','{!allNotesString}','{!allPhone}','{!allURL}','MyMap');</script>
+                <div class="map">
+                <apex:repeat value="{!addressWrapperList}" var="loc">
+                    <div class="mapAddress">
+                        <a href="javascript:void(0);" style="font-size: 13px;" onclick="initialize('{!loc.street} {!loc.city} {!loc.state} {!loc.zip}','{!loc.notes}','{!loc.phone}','{!loc.url}','MyMap');return false;">{!loc.Name}</a><br/>
+                        <label class="addreddLabel">{!loc.street}</label><br/>
+                        <label class="addreddLabel">{!loc.city} {!loc.state} {!loc.zip}</label>
+                    </div>
+                </apex:repeat>
+                </div>
+                <div id="MyMap"></div>
+                <div style="clear:both;"></div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+     </div> 
+    </apex:outputPanel>
+    <!-- end of map component -->
+    
+    </div>
+</apex:form>
+<script type="text/javascript">
+   
+  function initialize(allAddresses,allNotes,allPhone,allURL,container) {
+    var locations = allAddresses.split("**");
+    var notes = allNotes.split("**");
+    var phone = allPhone.split("**");
+    var url = allURL.split("**");
+    function geocodeAddress(i) {
+      geocoder.geocode(
+              {
+                  'address' : locations[i]
+              },
+              function(results, status) {
+                  if (status == google.maps.GeocoderStatus.OK) {
+                      if(locations.length == 1)
+                      	map.setCenter(results[0].geometry.location);
+                      createMarker(results[0].geometry.location, i);
+                  }
+       });
+      }   
+
+    function createMarker(latlng,i) {
+      var marker = new google.maps.Marker({
+                                    map : map,
+                                    position : latlng
+                                });
+      //add info window
+      google.maps.event.addListener(marker, 'click', function() {
+      	var htmlString = '<p style="font-size:12px;">';
+      			htmlString +=  locations[i] + '<br/>';
+      		  htmlString += (phone[i] == 'null' || phone[i] == '') ? '' : 'Phone : '+ phone[i] +'<br/>';
+      		  htmlString += (url[i] == 'null' || url[i] == '') ? '' : ('<a target="_blank" href="http://' + url[i] + '">'+url[i]+'</a><br/>');
+      		  htmlString += (notes[i] == 'null' || notes[i] == '') ? '' : (notes[i]);
+      		  htmlString += '</p>'; 
+           infowindow.setContent(htmlString);
+           infowindow.open(map, marker);
+       });
+
+      //end of adding info window
+
+       return marker;
+    }
+
+    var map = new google.maps.Map(document.getElementById(container), {
+        zoom : (locations.length > 1) ? 3 : 13,
+        center : new google.maps.LatLng(43.63871944444445, -116.2413513485235),
+        mapTypeId : google.maps.MapTypeId.ROADMAP
+    });
+
+    var infowindow = new google.maps.InfoWindow({size: new google.maps.Size(150,50)});
+
+    var geocoder = new google.maps.Geocoder();
+
+    for (var i = 0; i < locations.length; i++) {
+        geocodeAddress(i);
+    }//end of for loop  
+  }
+  
+ function changeComponent(currentLink,currentClass,disableLink1,disableClass1,disableLink2,disableClass2,disableLink3,disableClass3){
+    $("#"+currentLink).attr("class","active");
+    $("#"+disableLink1).attr("class","inactive");
+    $("#"+disableLink2).attr("class","inactive");
+    $("#"+disableLink3).attr("class","inactive");
+    $("."+currentClass).css("display","block");
+    $("."+disableClass1).css("display","none");
+    $("."+disableClass2).css("display","none");
+    $("."+disableClass3).css("display","none");
+    var arrowPosition = (currentClass == 'gMap') ? '55px' : '145px';
+    $(".arrow").css("left",arrowPosition);
+ }
+      
+$(document).ready(function () {
+   $('.searchLocationField').keydown(function(event,ui){
+     if(event.keyCode == 13) {
+        searchLocation();
+        return false;
+     }
+   });
+   if('{!CMSPage.Show_Google_Map__c}' != '') {
+   	initialize('{!defaultGmapAddress.Value__c}','{!defaultGmapAddress.Comment__c}','','','MyInitialMap');
+   }else {
+   		$(".tabs > a").each(function(){
+   			if($(this).css('display') == 'block'){
+   				var id = $(this).attr('id');
+   				$('.gCalendar'+id.charAt(id.length-1)).css('display','block');
+   				$(this).removeClass('inactive').addClass('active');
+   			}
+   		});
+   }
+});
+</script>
+</apex:component>

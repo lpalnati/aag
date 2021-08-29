@@ -1,0 +1,367 @@
+<apex:page controller="IntranetRequiredReadingsAssignment" sidebar="false">
+<script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+<head>
+   <style>
+     ul li, ol li {
+           margin-left: 0px;
+           padding-left: 0;
+        }
+        .pagination {
+            font-size: 80%;
+        }
+        
+       .pagination a {
+           text-decoration: none;
+           border: solid 1px black;
+           color: black;
+       }
+       
+       .pagination a, .pagination span {
+           display: block;
+           float: left;
+           padding: 0.3em 0.5em;
+           margin-right: 5px;
+           margin-bottom: 5px;
+       }
+       
+       .pagination .current {
+           background: black;
+           color: #fff;
+           border: solid 1px #AAE;
+           text-decoration:none;
+       }
+       
+       .pagination .notPrevious, .pagination .notNext{
+           color:#999;
+           border-color:#999;
+           background:#fff;
+           text-decoration:none;
+       }
+       .next {
+           text-decoration:underline
+       }           
+       .prev {
+           text-decoration:underline
+       }
+       .header {
+                height: 85px;       
+                 position: relative;
+                font-size: 11px;
+            }
+            .header .searchSite {
+        float: right;
+        width: 250px;
+        position: relative;
+        margin: 30px 0 0 0;
+    }
+    .header .searchSite input.text {
+            width: 230px;
+    }
+    .header .searchSite .icon {
+        position: absolute;
+        display: block;
+        right: 10px;
+        top: 5px;
+        width: 15px;
+        height: 15px;
+        background: url({!$Resource.IntranetDesign}/i/searchIcon.png) 0 0 no-repeat; 
+    } 
+    input[type=text], input[type=password], textarea {
+        border: 1px solid #cfcfcf;
+        background: url({!$Resource.IntranetDesign}/i/inputBg.png) 0 0 repeat-x;
+        font-size: 11px;
+        height: 22px;
+        line-height: 22px;
+        padding: 0 6px;
+        }
+   </style>
+   <script>
+    var currentIndex = 1;
+    var numberOfLinks = 1;
+    function setCurrentPage(index) {
+        if(currentIndex != index) {
+            currentIndex = parseInt(index);
+            getpage(currentIndex);
+        }
+    }
+    function next() {
+        if(currentIndex < numberOfLinks) {
+        currentIndex = currentIndex + 1;
+        getpage(currentIndex);
+        } 
+    }
+    function previous() {
+        if(currentIndex > 1) {
+         currentIndex = currentIndex - 1;
+         getpage(currentIndex);
+        } 
+    }
+    function setContentPaginationStyle(cIndex, noLinks) {
+        currentIndex = cIndex;
+        numberOfLinks = noLinks;
+       if(currentIndex == numberOfLinks) {
+           $("#nextDown").removeClass("next").addClass("notNext");
+       } else {
+           $("#nextDown").removeClass("notNext").addClass("next");
+       }
+       if(currentIndex == 1) {
+           $("#previousDown").removeClass("prev").addClass("notPrevious");
+       } else {
+           $("#previousDown").removeClass("notPrevious").addClass("prev");
+       }
+    }
+    var currentSubUserIndex = 1;
+    var SubUsernumberOfLinks = 1;
+    function setCurrentSubUserPage(index) {
+        if(currentSubUserIndex != index) {
+            currentSubUserIndex = parseInt(index);
+            getRRPage(currentSubUserIndex);
+        }
+    }
+    function nextSubUser() {
+        if(currentSubUserIndex < SubUsernumberOfLinks) {
+        currentSubUserIndex = currentSubUserIndex + 1;
+        getRRPage(currentSubUserIndex);
+        } 
+    }
+    function previousSubUser() {
+        if(currentSubUserIndex > 1) {
+         currentSubUserIndex = currentSubUserIndex - 1;
+         getRRPage(currentSubUserIndex);
+        } 
+    }
+    function setSubUserPaginationStyle(cIndex, noLinks) {
+            currentSubUserIndex = cIndex;
+            SubUsernumberOfLinks = noLinks;
+        if(currentSubUserIndex == SubUsernumberOfLinks) {
+            $("#nextDownSubUser").removeClass("next").addClass("notNext");
+        } else {
+            $("#nextDownSubUser").removeClass("notNext").addClass("next");
+        }
+        if(currentSubUserIndex == 1) {
+            $("#previousDownSubUser").removeClass("prev").addClass("notPrevious");
+        } else {
+            $("#previousDownSubUser").removeClass("notPrevious").addClass("prev");
+        }
+    }
+    var currentDefUserIndex = 1;
+    var DefUsernumberOfLinks = 1;
+    function setCurrentDefUserPage(index) {
+        if(currentDefUserIndex != index) {
+            currentDefUserIndex = parseInt(index);
+            getDefPage(currentDefUserIndex);
+        }
+    }
+    function nextDefUser() {
+        if(currentDefUserIndex < DefUsernumberOfLinks) {
+        currentDefUserIndex = currentDefUserIndex + 1;
+        getDefPage(currentDefUserIndex);
+        } 
+    }
+    function previousDefUser() {
+        if(currentDefUserIndex > 1) {
+         currentDefUserIndex = currentDefUserIndex - 1;
+         getDefPage(currentDefUserIndex);
+        } 
+    }
+    function setDefUserPaginationStyle(cIndex, noLinks) {
+            currentDefUserIndex = cIndex;
+            DefUsernumberOfLinks = noLinks;
+        if(currentDefUserIndex == DefUsernumberOfLinks) {
+            $("#nextDownDefUser").removeClass("next").addClass("notNext");
+        } else {
+            $("#nextDownDefUser").removeClass("notNext").addClass("next");
+        }
+        if(currentDefUserIndex == 1) {
+            $("#previousDownDefUser").removeClass("prev").addClass("notPrevious");
+        } else {
+            $("#previousDownDefUser").removeClass("notPrevious").addClass("prev");
+        }
+    }
+    function searchSubscribeUser() {
+        var searchText = document.getElementById("searchSubUser").value;
+        searchSubscribedUser(searchText);
+    }
+    function searchDefaultUser() {
+        var searchText = document.getElementById("searchDefUser").value;
+        if(searchText != '' && searchText != null){
+                searchDefaultUsers(searchText);         
+        }else {
+            alert("Please enter value to be search.");
+        }
+    }
+   </script>
+</head> 
+        <apex:form style="margin-top:25px;">
+            <apex:actionFunction name="getpage" action="{!getList}" rerender="contentTable" status="status"> 
+            <apex:param value="" assignTo="{!selectedPageNumber}" name="cPageNumber" />
+        </apex:actionFunction>
+        <apex:actionFunction name="getRRPage" action="{!getSubUserList}" rerender="SubscribeUsersBlock" status="status"> 
+            <apex:param value="" assignTo="{!selectedSubUserPageNumber}" name="RRPageNumber" />
+        </apex:actionFunction> 
+        <apex:actionFunction name="getDefPage" action="{!getDefUserList}" rerender="defaultUserBlock" status="status"> 
+            <apex:param value="" assignTo="{!selectedDefUserPageNumber}" name="dPageNumber" />
+        </apex:actionFunction>
+            <apex:actionFunction name="showContentTable" action="{!getSelectedGroupContentList}" reRender="contentTable,SubscribeUsersBlock" status="status"/>
+            <apex:actionFunction name="filterContentTable" action="{!getfilteredContentList}" reRender="contentTable,SubscribeUsersBlock" status="status"/>
+            <apex:actionFunction name="showSubscribeUserTable" action="{!getSubscribeUserList}" reRender="SubscribeUsersBlock" status="status">
+                    <apex:param value="" assignTo="{!selectedContentId}" name="sContent" />
+            </apex:actionFunction>
+            <apex:actionFunction name="searchSubscribedUser" action="{!searchSubscribeUser}" reRender="SubscribeUsersBlock" status="status">
+                    <apex:param value="" assignTo="{!subscribeUserSearchText}" name="sText" />
+            </apex:actionFunction>
+            <apex:actionFunction name="searchDefaultUsers" action="{!searchDefaultUsers}" reRender="defaultUserBlock" status="status">
+                    <apex:param value="" assignTo="{!defaultUserSearchText}" name="sText" />
+            </apex:actionFunction>
+            <apex:pageBlock >
+             <div>
+           <p style="font-size: 22px;font-weight: bold;margin-bottom: 15px;">Manage Required Reading Subscription</p>
+         </div>     
+         <apex:outputLabel value="Team :" for="team"></apex:outputLabel>&nbsp;
+         <apex:inputField value="{!contentVersion.Team__c}" onchange="showContentTable();return false;"/>&nbsp;&nbsp;&nbsp;&nbsp;
+         <apex:outputLabel value="Team Category :" for="TeamCategory"></apex:outputLabel>&nbsp;
+         <apex:inputField value="{!contentVersion.Team_Category__c}" onchange="filterContentTable();return false;"/>  
+         <apex:outputPanel id="contentTable" >
+         <apex:outputPanel rendered="{!contentList.size > 0}" style="top:25px;"> 
+             <apex:pageBlockTable value="{!contentList}" var="content" style="margin-top: 20px;">
+                <apex:column headerValue="Title">
+                    <a href="#" onclick="showSubscribeUserTable('{!content.Id}'); return false;"><apex:outputField value="{!content.Title}"/></a> 
+                </apex:column>
+                <apex:column headerValue="Due Date" value="{!content.Due_Date__c}"/>
+                <apex:column headerValue="Start Date" value="{!content.Start_Date__c}"/>
+                <apex:column headerValue="End Date" value="{!content.End_Date__c}"/>
+             </apex:pageBlockTable>
+             <table width="100%" style="margin-top: 8px;">
+                <tr>
+                  <td>&nbsp;</td>
+                <td style="float: right;vertical-align: middle;font-size: 15px;">
+                    <div id="PaginationDown" class="pagination">
+                        <a href="#" class="notPrevious" id="previousDown" onClick="previous();return false;">Previous</a>
+                        <span style="{!IF(conPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <apex:repeat value="{!conPagination.listOfLinks}" var="number" > 
+                            <a href="#" style="{!IF(number == selectedPageNumber,'text-decoration: none;','')}" 
+                                class="{!IF(number == selectedPageNumber,'current','')}" onClick="setCurrentPage('{!number}');return false;">{!number}</a>
+                        </apex:repeat>
+                        <span style="{!IF(conPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <a id="nextDown" href="#" class="next" onClick="next();return false;">Next</a>
+                    </div>
+                </td>
+                </tr>
+            </table>
+            <script>setContentPaginationStyle({!selectedPageNumber},{!conPagination.totalPage});</script>   
+            </apex:outputPanel>
+         </apex:outputPanel>
+         <apex:outputPanel id="SubscribeUsersBlock">
+            <apex:outputPanel rendered="{!subscribedUserList.size > 0}">
+                <div>
+                <p style="font-size: 22px;font-weight: bold;margin-bottom: -50px;">Existing users for selected document</p>
+                <div class="header">
+                    <div class="searchSite">
+                            <input type="text" placeHolder="Search user" class="text withDefault" id="searchSubUser"/>
+                            <a onclick="searchSubscribeUser();"><span class="icon"></span></a>
+                         </div>
+                     </div>
+                </div>
+                <apex:outputPanel rendered="{!NOT(isSearch)}">
+                <apex:pageBlockTable value="{!subscribedUserList}" var="subUser">
+                <apex:column headerValue="Status">
+                <apex:inputCheckbox value="{!subUser.isSubscribe}"/>
+                </apex:column>
+                <apex:column headerValue="User Name" value="{!subUser.RRRecords.User_ID__r.Name}"/>
+                <apex:column headerValue="User Email">	
+                	<apex:outputText value="{!subUser.RRRecords.User_ID__r.Email}"/>
+                </apex:column>
+            </apex:pageBlockTable>
+            <table width="100%" style="margin-top: 8px;">
+                <tr>
+                <td style="float: left;vertical-align: top;">
+                    <apex:commandButton action="{!unsubscribeUser}" value="Save" reRender="SubscribeUsersBlock" status="status"/>
+                </td>
+                <td style="float: right;vertical-align: middle;font-size:12px;">
+                    <div id="PaginationDown" class="pagination">
+                        <a href="#" class="notPrevious" id="previousDownSubUser" onClick="previousSubUser();return false;">Previous</a>
+                        <span style="{!IF(subPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <apex:repeat value="{!subPagination.listOfLinks}" var="number" > 
+                            <a href="#" style="{!IF(number == selectedSubUserPageNumber,'text-decoration: none;','')}" 
+                                class="{!IF(number == selectedSubUserPageNumber,'current','')}" onClick="setCurrentSubUserPage('{!number}');return false;">{!number}</a>
+                        </apex:repeat>
+                        <span style="{!IF(subPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <a id="nextDownSubUser" href="#" class="next" onClick="nextSubUser();return false;">Next</a>
+                    </div>
+                </td>
+                </tr>
+            </table>
+            <script>setSubUserPaginationStyle({!selectedSubUserPageNumber},{!subPagination.totalPage});</script>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!AND(isSearch,searchingSubscribedUserList.size > 0)}">
+                <apex:pageBlockTable value="{!searchingSubscribedUserList}" var="subUser">
+                    <apex:column headerValue="Status">
+                    <apex:inputCheckbox value="{!subUser.isSubscribe}"/>
+                    </apex:column>
+                    <apex:column headerValue="User Name" value="{!subUser.RRRecords.User_ID__r.Name}"/>
+                    <apex:column headerValue="User Email">
+                    	<apex:outputText value="{!subUser.RRRecords.User_ID__r.Email}"/>
+                    </apex:column>
+                </apex:pageBlockTable>
+                <apex:commandButton action="{!unsubscribeUser}" value="Save" reRender="SubscribeUsersBlock" status="status" style="margin-top:8px;"/>
+            </apex:outputPanel>
+            <div>
+                <p style="font-size: 22px;font-weight: bold;margin-bottom: -50px; margin-top:30px;">Add Additional Users</p>
+                <div class="header">
+                <div class="searchSite">
+                        <input type="text" placeHolder="Search user" class="text withDefault" id="searchDefUser"/>
+                        <a onclick="searchDefaultUser();"><span class="icon"></span></a>
+                     </div>
+                     </div>
+            </div>
+            <apex:outputPanel id="defaultUserBlock">
+             <apex:outputPanel rendered="{!searchDefaultUsersList.size > 0}">   
+                <apex:pageBlockTable value="{!searchDefaultUsersList}" var="defUser" >
+                <apex:column headerValue="Status">
+                <apex:inputCheckbox value="{!defUser.isSubscribe}"/>
+                </apex:column>
+                <apex:column headerValue="User Name" value="{!defUser.user.Name}"/>
+                <apex:column headerValue="User Email">
+                	<apex:outputText value="{!defUser.user.Email}" />
+                </apex:column>
+              </apex:pageBlockTable>
+              <table width="100%" style="margin-top: 8px;">
+                <tr>
+                <td style="float: left;vertical-align: top;">
+                    <apex:commandButton action="{!subscribeUser}" value="Add" style="margin-top:12px;" rendered="{!searchDefaultUsersList.size > 0}" status="status" reRender="SubscribeUsersBlock"/>
+                </td>
+                <td style="float: right;vertical-align: middle;font-size:12px;">
+                    <div id="PaginationDown" class="pagination">
+                        <a href="#" class="notPrevious" id="previousDownDefUser" onClick="previousDefUser();return false;">Previous</a>
+                        <span style="{!IF(defPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <apex:repeat value="{!defPagination.listOfLinks}" var="number" > 
+                            <a href="#" style="{!IF(number == selectedDefUserPageNumber,'text-decoration: none;','')}" 
+                                class="{!IF(number == selectedDefUserPageNumber,'current','')}" onClick="setCurrentDefUserPage('{!number}');return false;">{!number}</a>
+                        </apex:repeat>
+                        <span style="{!IF(defPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                        <a id="nextDownDefUser" href="#" class="next" onClick="nextDefUser();return false;">Next</a>
+                    </div>
+                </td>
+                </tr>
+            </table>
+            <script>setDefUserPaginationStyle({!selectedDefUserPageNumber},{!defPagination.totalPage});</script>
+            </apex:outputPanel>
+            </apex:outputPanel>
+            </apex:outputPanel>
+         </apex:outputPanel>
+        </apex:pageBlock>
+        <apex:outputpanel >
+                <apex:actionstatus id="status">
+               <apex:facet name="start">
+                 <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+                        height: 100%;opacity:0.65;width:100%;"> 
+                    <div class="waitingHolder" style="top: 500px; width: 100px;">
+                        <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                        <span class="waitingDescription">Please Wait...</span>
+                    </div>
+                 </div>
+               </apex:facet>
+                </apex:actionstatus>
+            </apex:outputpanel>
+      </apex:form>
+</apex:page>

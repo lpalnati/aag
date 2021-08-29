@@ -1,0 +1,67 @@
+<!-- Last Modified 25th Nov, 2014  Fix display of News Articles on Team Page - Planning & Sales(Ref - T-335841) -->
+<apex:component controller="IntranetNewsFeedComponentController" allowDML="true"> 
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet news feeds" type="String" assignTo="{!pageId}"/>
+<style>
+    .contentCard .shortContent {
+        border:none;
+    }
+    .grayBtn {
+        margin-top:-10px;
+    }
+    .flex-direction-nav a {
+            filter : alpha(opacity=0);
+        }
+        .flexslider:hover .flex-next {
+            filter : alpha(opacity=30);
+        }
+        .flexslider:hover .flex-prev {
+            filter : alpha(opacity=30);
+        }
+        .contentCard .shortContent .text .grayBtn{
+            float :left;
+        }
+</style>
+<script>
+    $(function(){
+      $('#newsSlider').flexslider({
+        animation: "slide",
+        slideshowSpeed: '{!banner_Roating_Speed}',
+        controlNav: false,
+        itemWidth: 100,                   
+        itemMargin: 10,                  
+        minItems: 0,
+        move: 0,
+      });
+    });
+</script>
+<apex:form id="frm">
+<div class="contentCard">
+    <h2 style="display:block;">News</h2>
+        <div  id="newsSliderTeam" class="flexslider" style="height:207px;margin-bottom:15px;">
+           <ul class="slides">
+             <apex:repeat value="{!newsList}" var="news">
+                <li>
+                    <div class="shortContent">
+                            <div>   
+                         <apex:outputLink value="{!IF(news.Article_Type__c == 'External','/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE(news.URL__c),'/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE('/apex/IntranetContent?id='+news.Id+'&category=News&tabName='+SUBSTITUTE(PageId, '&', '%26')))}" Target="{!IF(news.Article_Type__c == 'External','_Blank','_self')}" rendered="{!IF(news.Attachments.size > 0 , true, false)}">
+                            <apex:image styleClass="teamNewsImage" value="/servlet/servlet.FileDownload?file={!news.Attachments[0].Id}&otherId=" />
+                         </apex:outputLink>
+                        </div>
+                        <div class="text">
+                        <h3 style="display: block;"> <a href="{!IF(news.Article_Type__c == 'External','/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE(news.URL__c),'/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE('/apex/IntranetContent?id='+news.Id+'&category=News&tabName='+SUBSTITUTE(PageId, '&', '%26')))}" Target="{!IF(news.Article_Type__c == 'External','_Blank','_self')}" >{!news.Name}</a> </h3>
+                        <p>
+                            {!news.Summary__c}
+                        </p>
+                        <div class="buttons">
+                            <a href="{!IF(news.Article_Type__c == 'External','/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE(news.URL__c),'/apex/IntranetRouter?id='+news.Id+'&type=Intranet_Article__c&path='+URLENCODE('/apex/IntranetContent?id='+news.Id+'&category=News&tabName='+SUBSTITUTE(PageId, '&', '%26')))}" Target="{!IF(news.Article_Type__c == 'External','_Blank','_self')}" class="grayBtn"><span><span>More</span></span></a>
+                        </div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </li>
+            </apex:repeat> 
+        </ul>
+    </div>          
+</div>
+</apex:form>
+</apex:component>

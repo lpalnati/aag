@@ -1,0 +1,79 @@
+<apex:component controller="IntranetHeaderComponentController" >
+<title>{!pageTitle}</title>
+<apex:attribute name="pageId" description="This is the Page Id for displaying header" type="String" assignTo="{!pageId}"/>
+<script>
+     $(document).ready(function () {
+        $('#searchBox').focus(function () {
+        defaultText = $(this).val();
+        $(this).val('');
+    });
+    $('#searchBox').blur(function () {
+        if ($(this).val() == "") {
+            $(this).val(defaultText);
+        }
+    });
+    $('#searchBox').keydown(function(event,ui){
+      if(event.keyCode == 13)
+      {
+         $('.icon').click();
+      }
+     });
+    });
+    
+    function redirectToSearchPage() {
+        window.location.replace("/apex/IntranetSearch?searchString="+$('#searchBox').val());
+    }
+</script>
+<style>
+    .header .userBlock .userInfo .info {
+        width : 200px !important;
+        position: absolute;
+                margin-left: 45px;
+    }
+</style>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-37254702-1']);
+  _gaq.push(['_setDomainName', 'na64.visual.force.com']);
+  _gaq.push(['_setAllowLinker', true]);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<!-- header -->
+<div class="header">
+    <div class="logoWrapper">
+        <a href="/apex/IntranetHome">
+            <img src="{!$Resource.IntranetDesign}/i/logo.png" alt="" id="searchImage"/>
+        </a>
+    </div>
+    <div class="userBlock">
+            <a href="/apex/IntranetRequiredReadings" class="msgBox" target="_blank">
+                <apex:outputPanel rendered="{!IF(unreadCounts!=0,true,false)}">
+                    <span class="unread"><span><span>{!unreadCounts}</span></span></span>
+                    </apex:outputPanel>
+                </a>
+        <div class="userInfo">
+            <apex:image value="{!currentUser.SmallPhotoUrl}" />
+            <div class="info">
+                <span>Welcome <strong>{!currentUser.Name}</strong></span><br/>
+                <a href="/apex/IntranetDashboard">User Dashboard</a>&nbsp;|&nbsp;
+                <a href="/apex/intranetLogout">Logout</a>
+            </div>
+        </div>
+    </div>
+    <div class="searchSite">
+        <input type="text" value="Search Site" class="text withDefault" id="searchBox"/>
+        <a onclick="redirectToSearchPage();"><span class="icon"></span></a> 
+    </div>
+</div>
+<!-- end of header -->
+</apex:component>

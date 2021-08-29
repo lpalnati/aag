@@ -1,0 +1,103 @@
+<apex:page showHeader="false" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <style type="text/css">
+        @font-face {
+            font-family: "Helvetica Neue Medium";
+            src: url("{!URLFOR($Resource.RoutingWizardStaticResource,'font/HelveticaNeueMed.ttf')}")  format('truetype');
+        }
+        @font-face {
+            font-family: "Helvetica Neue Light";
+            src: url("{!URLFOR($Resource.RoutingWizardStaticResource,'font/HelveticaNeueLt.ttf')}")  format('truetype');
+        }
+        @font-face {
+            font-family: "Helvetica Neue Regular";
+            src: url("{!URLFOR($Resource.RoutingWizardStaticResource,'font/HelveticaNeue.ttf')}")  format('truetype');
+        }
+        @font-face {
+            font-family: "ProximaNovaSoft-Regular";
+            src: url("{!URLFOR($Resource.RoutingWizardStaticResource,'font/ProximaNovaSoft-Regular.otf')}")  format('opentype');
+        }
+    </style>
+    <style type="text/css">
+    .clr_mrn { color: #602320;}
+    .clr_red { color: #E0301E;}
+    .clr_blk { color: #3F3F40;}
+    .clr_Ble { color:#0054A6;}
+    .clr_pnk { color:#DB536A;}
+    .clr_gry { color:#AFA997;}
+    .clr_ash { color:#D7D4CA;}
+    .clr_mlk { color:#EDEDEC;}
+    .clr_wht { color:#F5F0EA;}
+    .clr_org { color:#EB8C00;}
+    
+    .clr_F { color:#FFFFFF;}
+    .clr_o { color:#000000;}
+
+    .bgclr_mrn { background-color: #602320;}
+    .bgclr_red { background-color: #E0301E;}
+    .bgclr_blk { background-color:#3F3F40;}
+    .bgclr_Ble { background-color:#0054A6;}
+    .bgclr_pnk { background-color:#DB536A;}
+    .bgclr_gry { background-color:#AFA997;}
+    .bgclr_ash { background-color:#D7D4CA;}
+    .bgclr_mlk { background-color:#EDEDEC;}
+    .bgclr_wht { background-color:#F5F0EA;}
+    .bgclr_org { background-color:#EB8C00;}
+
+    .ftSz_xl {font-size: 24px;}
+    .ftSz_ll {font-size: 22px;}
+    .ftSz_lg {font-size: 18px;}
+    .ftSz_md {font-size: 16px;}
+    .ftSz_sm {font-size: 15px;}
+
+    .ftSz_xl_b {font-size: 24px;font-weight: bold;}
+    .ftSz_ll_b {font-size: 22px;font-weight: bold;}
+    .ftSz_lg_b {font-size: 18px;font-weight: bold;}
+    .ftSz_md_b {font-size: 16px;font-weight: bold;}
+    .ftSz_sm_b {font-size: 15px;font-weight: bold;}
+    
+    .ftfmy_mm {font-family: Helvetica Neue Medium;}
+    .ftfmy_rg {font-family: Helvetica Neue Regular;}
+    .ftfmy_lt {font-family: Helvetica Neue Light;}
+    .ftfmy_ab {font-family: Arial Bold;}
+    .ftfmy_ar {font-family: Arial Regular;}
+
+    .btn_org {
+        width: 150px;
+        font-size: 15px;
+        font-family: Helvetica Neue Light;
+        background-color: #EB8C00;
+        border-color: #EB8C00;
+        color: #FFFFFF;
+        border-style: solid;
+        text-align: center;
+        border-radius: 30px;
+        background-image: none;
+    }
+
+    .btn_blk {
+        width: 150px;
+        font-size: 15px;
+        font-family: Helvetica Neue Light;
+        background-color: #3F2F40;
+        border-color: #3F2F40;
+        color: #FFFFFF;
+        border-style: solid;
+        text-align: center;
+        border-radius: 30px;
+        background-image: none;
+    }
+
+    /*
+    Default
+    */
+    html, body { 
+        height: 100%; 
+        overflow: auto; 
+        -webkit-overflow-scrolling: touch; 
+        font-size: 16px;
+        // font-family: "Helvetica Neue Regular";
+        font-family: Myriad Pro Bold, Calibri, Arial;
+        background-image: none;
+    }
+    </style>
+</apex:page>

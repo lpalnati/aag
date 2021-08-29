@@ -1,0 +1,110 @@
+<apex:component controller="IntranetMenuController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet menue" type="String" />
+<script type="text/javascript">
+ $(document).ready(function(){
+		 $("#menuDiv").append('{!ulString}'); 
+		if(screen.width > 767) {
+		var headerHeight = $(".header").height();
+		// menu
+		$(".menu li.withSub").hover(
+			function() {
+				var li = $(this);
+				var submenu = $("> .submenu", li);
+	
+				var lv1 = li;
+				if(!li.hasClass("lv1")) { // sub level
+					var parents = li.parentsUntil("li.lv1");
+					lv1 = $(parents[parents.length-1]);
+					
+					var indx = li.parent().parent().index();
+					var name = li.parent().parent().children("a").text();
+					var topValue = li.offset().top - headerHeight - 41 - ( 30 * indx );
+					$(".menuWrapper > ul:first > li > a").each(function(){
+						if ($(this).text() == name){
+							topValue = topValue + (30 * indx);
+						}
+					});
+					submenu.css({
+						top: topValue,
+						left: Math.max(lv1.width(), li.parent().width())
+					});
+					submenu.css("width", lv1.width()+10).show();
+				}
+				else { // level 1
+					submenu.css("width", lv1.width()).show();
+				}
+			},
+			function() {
+				var li = $(this);
+				$("> .submenu", li).hide();
+			}
+		);
+	
+	
+		/* side dropdown menu */
+		$(".side .dropdownMenu.expanded > a").live("click", function() {
+			var menu = $(this).parent();
+			$("ul", menu).slideUp("fast", function() {
+				menu.removeClass("expanded").addClass("collapsed");
+			});
+		});
+		
+		$(".side .dropdownMenu.collapsed > a").live("click", function() {
+			var menu = $(this).parent();
+			$("ul", menu).slideDown("fast", function() {
+				menu.removeClass("collapsed").addClass("expanded");
+			});
+		});
+		
+		var zIndexNumber = 1000;
+		$('ul').each(function() {
+		    $(this).css('zIndex', zIndexNumber);
+		    zIndexNumber -= 10;
+		});
+		}
+		$("a").css("text-decoration", "none");
+		if( (navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i)) ) { 
+  		$(".menuWrapper li.chatter > a").attr("href","{!IOSMarketplaceUrl}");  
+		}
+		if(navigator.userAgent.match(/Android/i)){
+			$(".menuWrapper li.chatter > a").attr("href","{!AndroidMarketplaceUrl}");
+		}
+	});
+ </script>
+  
+<div id="menuDiv" class="menuWrapper">
+	<a href="#" class="phoneFirstMenu">
+		<span>MENU</span>
+	</a>
+</div> 
+<script>
+$(document).ready(function(){
+ 
+    function getURLParameter(name) {
+        return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]);
+    }
+    
+    var pageName = getURLParameter("tabName");
+    $("#menuDiv ul:first > li > a").each(function(){
+        if ($(this).text().toLowerCase() == pageName.toLowerCase()){
+            $(this).parent().addClass("active");
+        }else{
+            $(this).parent().removeClass("active");
+        }
+    });
+    
+    if(pageName.toLowerCase() == 'brand' ){
+        $(".homePage .card h2").css('background-position','0 -40px');
+    }
+    else if(pageName.toLowerCase() == "business"){
+        $(".homePage .card h2").css('background-position','0 -79px');
+    }
+    else if(pageName.toLowerCase() == "teams"){
+        $(".homePage .card h2").css('background-position','0 -120px');
+    }else if(pageName.toLowerCase() == 'null'){
+        $("#menuDiv ul.menu li:first").addClass("active");
+        $(".homePage .card h2").css('background-position','0 0');
+    }	
+});
+</script>
+</apex:component>

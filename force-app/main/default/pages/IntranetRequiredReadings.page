@@ -1,0 +1,488 @@
+<!-- * Modified By   :  Ashish Sharma -->
+<!-- * Modified Date :  27th October, 2014 -->
+<!-- * Ref.          :  T-328420 -->
+<!-- * Modified By   :  Ashish Sharma -->
+<!-- * Modified Date :  30th October, 2014 -->
+<!-- * Ref.          :  T-329191  -->
+<!-- * Modified By   :  Ashish Sharma -->
+<!-- * Modified Date :  31st October, 2014 -->
+<!-- * Ref.          :  T-330479  -->
+<!-- * Modified By   :  Rahul Mittal -->
+<!-- * Modified Date :  2nd Dec, 2014 -->
+<!-- * Ref.          :  T-337045  -->
+<!-- * Modified By   :  Rahul Mittal -->
+<!-- * Modified Date :  5th Dec, 2014 -->
+<!-- * Ref.          :  T-337618  -->
+<apex:page id="page" sidebar="false" showheader="false" controller="IntranetRequiredReadings">
+    <head>
+        <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+        <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+        <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+        <link rel="Stylesheet" type="text/css" href="{!$Resource.ImageSlider}/ImageSlider/css/flexslider.css"></link>
+        <script type="text/javascript" src="{!$Resource.ImageSlider}/ImageSlider/js/jquery.flexslider.js"></script>
+        <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+        <link rel="Stylesheet" type="text/css" href="{!$Resource.FullScreen}/bootstrap.min.css"></link>
+
+        <script type="text/javascript" src="{!$Resource.FullScreen}/bootstrap.min.js"></script>
+        <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css"/>
+        <script src="https://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+        <meta name="viewport" content="width=320, user-scalable=no"/>
+
+
+   <style type="text/css">
+        .odd {
+            background-color: #ffffff;
+            padding: 7px 0;
+            line-height: 16px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .even {
+            background-color: #efefef;
+            padding: 7px 0;
+            line-height: 16px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .highlighted{
+        background-color: #FFFF99;
+        }
+        .error{
+        background-color: #FF3B3B;
+        }
+        .nav{
+          padding: 7px 0;
+          line-height: 30px;
+          font-size: 13px;
+          font-weight: normal;
+          float:right;
+          color: #015BA7;
+          margin-right: 10px;
+        }
+      ul li, ol li {
+          margin-left: 0px;
+          padding-left: 0;
+      }
+      .headerRow{
+        background-color:#e3e3e3;
+      }
+      .notPrevious, .notNext{
+      color:#999;
+      text-decoration:none;
+    }
+    .notNext:hover{
+      color:#999;
+    }
+    .notPrevious:hover{
+        color:#999;
+    }
+    .next {
+       text-decoration:none;
+     }
+    .prev {
+      text-decoration:none;
+     }
+     .current {
+       color:#e0262b;
+     }
+     .current:hover {
+       color:#e0262b;
+     }
+     body a:hover {
+       text-decoration: none;
+     }
+     #buttonWrap {
+          position: fixed;
+          bottom: 0;
+          right: 0;
+        }
+
+        .fade.in {
+         padding: 0px;
+        }
+
+        .modal-body{
+          height: 400px;
+        }
+
+        #_contentModal {
+             top:20;
+             left: 25%;
+             overflow: inherit;
+            // background-color: none; !important;
+             border: 0px; !important;
+             //padding : 0px;
+
+         }
+
+        .modal-dialog {
+             right: auto !important;
+             width: 800px !important;
+             padding-top: 0px !important;
+        }
+
+        .modal-title{
+            background:#428bca;
+            color: white;
+            padding: 10px;
+            font-weight: 400;
+            font-size: 16px;
+            display: block;
+        }
+
+        .ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front.ui-dialog-buttons.ui-draggable{
+            width: auto !important;
+            left: 35% !important;
+            z-index: 2000 !important;
+        }
+
+        div#dialog-confirm{
+            height: auto !important;
+        }
+
+        #dialog-confirm{
+            display: none;
+        }
+    </style>
+    <script>
+        var currentIndex = 1;
+      var numberOfLinks = 1;
+    function setCurrentPage(index) {
+        if(currentIndex != index) {
+            currentIndex = parseInt(index);
+            navigatePage(currentIndex);
+        }
+    }
+    function previous() {
+        if(currentIndex > 1) {
+             currentIndex = currentIndex - 1;
+             navigatePage(currentIndex);
+        }
+    }
+    function next(){
+        if(currentIndex < numberOfLinks) {
+            currentIndex = currentIndex + 1;
+            navigatePage(currentIndex);
+        }
+    }
+    function setPaginationStyle(cIndex, noLinks) {
+       currentIndex = cIndex;
+       numberOfLinks = noLinks;
+        if(currentIndex == numberOfLinks) {
+           $("#nextDown").removeClass("next").addClass("notNext");
+           $("#nextUp").removeClass("next").addClass("notNext");
+       } else {
+           $("#nextDown").removeClass("notNext").addClass("next");
+           $("#nextUp").removeClass("notNext").addClass("next");
+       }
+       if(currentIndex == 1) {
+           $("#prevDown").removeClass("prev").addClass("notPrevious");
+           $("#prevUp").removeClass("prev").addClass("notPrevious");
+       } else {
+           $("#prevDown").removeClass("notPrevious").addClass("prev");
+           $("#prevUp").removeClass("notPrevious").addClass("prev");
+       }
+    }
+
+    var currentReadIndex = 1;
+    var numberOfReadLinks = 1;
+    function setCurrentReadPage(index) {
+        if(currentReadIndex != index) {
+            currentReadIndex = parseInt(index);
+            navigateReadPage(currentReadIndex);
+        }
+    }
+    function previousRR() {
+        if(currentReadIndex > 1) {
+             currentReadIndex = currentReadIndex - 1;
+             navigateReadPage(currentReadIndex);
+        }
+    }
+    function nextRR(){
+        if(currentReadIndex < numberOfReadLinks) {
+             currentReadIndex = currentReadIndex + 1;
+             navigateReadPage(currentReadIndex);
+        }
+    }
+    function setRRPaginationStyle(cIndex, noLinks) {
+       currentReadIndex = cIndex;
+       numberOfReadLinks = noLinks;
+        if(currentReadIndex == numberOfReadLinks) {
+           $("#nextRRDown").removeClass("next").addClass("notNext");
+           $("#nextRRUp").removeClass("next").addClass("notNext");
+       } else {
+           $("#nextRRDown").removeClass("notNext").addClass("next");
+           $("#nextRRUp").removeClass("notNext").addClass("next");
+       }
+       if(currentReadIndex == 1) {
+           $("#prevRRDown").removeClass("prev").addClass("notPrevious");
+           $("#prevRRUp").removeClass("prev").addClass("notPrevious");
+       } else {
+           $("#prevRRDown").removeClass("notPrevious").addClass("prev");
+           $("#prevRRUp").removeClass("notPrevious").addClass("prev");
+       }
+    }
+
+    function setCompleteAction(contVersion, rowId){
+        processContent(contVersion, rowId);
+        return false;
+    }
+    </script>
+    </head>
+
+    <body class="homePage">
+    <div class="wrapper">
+        <c:IntranetHeader />
+        <div class="content">
+            <c:IntranetMenu />
+            <div style="height: auto;">
+            <div>
+                <p class="contentTitle">Required Reading</p>
+            </div>
+                <table border="0" style="width: 100%;margin-top: 20px;">
+                    <tr>
+                    <td valign="top" style="border:1px solid #e3e3e3;background-color:white;">
+                        <div class="unreadBlock">
+                            <apex:form >
+                               <apex:actionFunction name="previousUn" action="{!setPrev}" rerender="unreadTable" status="status"/>
+                               <apex:actionFunction name="nextUn" action="{!setNext}" rerender="unreadTable" status="status"/>
+                                <apex:actionFunction name="navigatePage" action="{!setPage}" rerender="unreadTable" status="status">
+                                    <apex:param value="" assignTo="{!currentPage}" name="currentPage" />
+                                </apex:actionFunction>
+
+                                <apex:actionFunction name="setComplete" action="{!setComplete}" status="status" />
+
+                                <apex:actionfunction name="processContent" action="{!processContent}" reRender="modalPanel" oncomplete=" $('#_contentModal').modal('show');">
+                                  <apex:param value="" name="resourceIdParam" />
+                                  <apex:param value="" name="currentRowId" assignTo="{!currentRowId}"/>
+                                </apex:actionfunction>
+
+                                <apex:outputPanel id="unreadTable">
+                               <div style="float:left;margin: 12px;font-weight: bold;">
+                                   <p>Unread ({!rows.size})</p>
+                                </div>
+                               <div class="nav" >
+                                   <a href="#" id="prevUp" onClick="previous();return false;" class="prev">&#60;&#60;Prev</a>
+                                    <apex:repeat value="{!pageNumbers}" var="pageNumber" id="pageNumbersIdTop">
+                                        &nbsp;&nbsp;
+                                       <!--  <apex:commandLink action="{!setPage}" value="{!pageNumber}">
+                                            <apex:param name="currentPageParam" value="{!pageNumber}" assignTo="{!currentPage}"/> </apex:commandLink>-->
+                                        <a href="#" class="{!IF(pageNumber == currentPage,'current','')}" onClick="setCurrentPage('{!pageNumber}');return false;">{!pageNumber}</a>
+                                    </apex:repeat>
+                                      &nbsp;&nbsp;
+                                   <a href="#" id="nextUp" onClick="next();return false;" class="next">Next&#62;&#62;</a>
+                                </div>
+                                <br/><br/>
+
+                                <apex:dataTable value="{!page}" var="row" headerClass="headerRow" rowClasses="odd,even" styleClass="list">
+                                    <apex:column >
+                                        <apex:facet name="header"><div><b>Title</b></div></apex:facet>
+                                        <a id="unTitleLink{!row.contentVersion}" href="{!row.url}" target="_blank" style="word-break: break-all;">{!row.name}</a>
+                                        <script>
+                                            if((screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) && '{!row.FileType}' != 'LINK'){
+                                                $("#unTitleLink{!row.contentVersion}").attr("href","/sfc/servlet.shepherd/version/download/{!row.contentVersion}?asPdf=false&amp;operationContext=CHATTER");
+                                            }
+                                        </script>
+                                    </apex:column>
+
+                                    <apex:column >
+                                        <apex:facet name="header"><b>Due Date</b><img src="/img/leads_show_more_arrow.gif"/></apex:facet>
+                                        <apex:outputText style="{!IF(row.isOverDue,'color:red;','')}" value="{0,date,yyyy-MMM-dd}">
+                                           <apex:param value="{!row.dueDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+
+                                    <apex:column >
+                                        <apex:facet name="header"><b>Publish Date</b></apex:facet>
+                                        <apex:outputText value="{!row.publishDate}"/>
+                                    </apex:column>
+
+                                      <apex:column >
+                                        <apex:facet name="header"><b>&nbsp;</b></apex:facet>
+                                         <apex:commandLink value="Click here to Complete" onclick="setCompleteAction('{!row.contentVersion}', '{!row.Id}');return false;" />
+                                    </apex:column>
+
+                                </apex:dataTable>
+                                <div  class="nav">
+                                   <a href="#" id="prevDown" onClick="previous();return false;" class="prev">&#60;&#60;Prev</a>
+                                    <apex:repeat value="{!pageNumbers}" var="pageNumber" id="pageNumbersIdBottom">
+                                        &nbsp;&nbsp;
+                                        <!-- <apex:commandLink action="{!setPage}" value="{!pageNumber}">
+                                            <apex:param name="currentPageParam" value="{!pageNumber}" assignTo="{!currentPage}"/>
+                                        </apex:commandLink>-->
+                                        <a href="#" class="{!IF(pageNumber == currentPage,'current','')}" onClick="setCurrentPage('{!pageNumber}');return false;">{!pageNumber}</a>
+                                    </apex:repeat>
+                                       &nbsp;&nbsp;
+                                    <a href="#" id="nextDown" onClick="next();return false;" class="next">Next&#62;&#62;</a>
+                                </div>
+                                <script>setPaginationStyle({!currentPage},{!PageNumbers.size});</script>
+                                </apex:outputPanel>
+                                 <apex:outputpanel >
+                                    <apex:actionstatus id="status">
+                                   <apex:facet name="start">
+                                     <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+                                            height: 600%;opacity:0.65;width:100%;">
+                                        <div class="waitingHolder" style="top: 10%; width: 100px;">
+                                            <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                                            <span class="waitingDescription">Please Wait...</span>
+                                        </div>
+                                     </div>
+                                   </apex:facet>
+                                    </apex:actionstatus>
+                                </apex:outputpanel>
+                            </apex:form>
+                        </div>
+                    </td>
+                    </tr>
+                    </table>
+            </div>
+            <!-- -------------------------   Read Required Reading Records Started  =----------------------------------------- -->
+             <div style="height: auto;">
+                <table border="0"  style="width: 100%;margin-top: 40px;">
+                    <tr>
+                    <td valign="top" style="border:1px solid #e3e3e3;background-color:white;">
+                       <div class="readBlock">
+                            <apex:form >
+                              <apex:actionFunction name="readPrevious" action="{!setPrevRR}" rerender="readTable" status="statusRead"/>
+                              <apex:actionFunction name="readNext" action="{!setNextRR}" rerender="readTable" status="statusRead"/>
+                                <apex:actionFunction name="navigateReadPage" action="{!setPage}" rerender="readTable" status="status">
+                                    <apex:param value="" assignTo="{!currentPageReadRR}" name="currentPageReadRR" />
+                                </apex:actionFunction>
+                                <apex:outputPanel id="readTable">
+                                <div style="float:left;margin: 12px;font-weight: bold;">
+                                   <p>Read ({!rowsReadRR.size})</p>
+                                </div>
+                             <div  class="nav">
+                                    <a href="#" id="prevRRUp" onClick="previousRR();return false;" class="prev">&#60;&#60;Prev</a>
+                                    <apex:repeat value="{!PageNumbersRR}" var="pageNumber" id="pageNumbersIdTop">
+                                        &nbsp;&nbsp;
+                                       <!--  <apex:commandLink action="{!setPage}" value="{!pageNumber}">
+                                            <apex:param name="currentPageParam" value="{!pageNumber}" assignTo="{!currentPageReadRR}"/>
+                                        </apex:commandLink> -->
+                                         <a href="#" class="{!IF(pageNumber == currentPageReadRR,'current','')}" onClick="setCurrentReadPage('{!pageNumber}');return false;">{!pageNumber}</a>
+                                    </apex:repeat>
+                                    &nbsp;&nbsp;
+                                   <a href="#" id="nextRRUp" onClick="nextRR();return false;" class="next">Next&#62;&#62;</a>
+                             </div>
+                                <br/><br/>
+
+                                <apex:dataTable value="{!pageRR}" var="row" headerClass="headerRow" rowClasses="odd,even" styleClass="list">
+                                    <apex:column >
+                                        <apex:facet name="header"><b>Title</b></apex:facet>
+                                        <a id="rrTitleLink{!row.contentVersion}" href="{!row.url}" target="_blank" style="word-break: break-all;">{!row.name}</a>
+                                        <script>
+                                            if((screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) && '{!row.FileType}' != 'LINK'){
+                                                $("#rrTitleLink{!row.contentVersion}").attr("href","/sfc/servlet.shepherd/version/download/{!row.contentVersion}?asPdf=false&amp;operationContext=CHATTER");
+                                            }
+                                        </script>
+                                    </apex:column>
+
+                                    <apex:column >
+                                        <apex:facet name="header"><b>Due Date</b></apex:facet>
+                                        <apex:outputText value="{0,date,yyyy-MMM-dd}">
+                                           <apex:param value="{!row.dueDate}" />
+                                        </apex:outputText>
+                                    </apex:column>
+
+                                     <apex:column >
+                                        <apex:facet name="header"><b>Complete Date</b></apex:facet>
+                                        <apex:outputText value="{!row.completeDate}"/>
+                                    </apex:column>
+
+                                    <apex:column >
+                                        <apex:facet name="header"><b>Publish Date</b><img src="/img/leads_show_more_arrow.gif"/></apex:facet>
+                                        <apex:outputText value="{!row.publishDate}"/>
+                                    </apex:column>
+
+                                </apex:dataTable>
+                               <div  class="nav">
+                                    <a href="#" id="prevRRDown" onClick="previousRR();return false;" class="prev">&#60;&#60;Prev</a>
+                                    <apex:repeat value="{!pageNumbersRR}" var="pageNumber" id="pageNumbersIdBottom">
+                                        &nbsp;&nbsp;
+                                       <!--  <apex:commandLink action="{!setPage}" value="{!pageNumber}">
+                                            <apex:param name="currentPageParam" value="{!pageNumber}" assignTo="{!currentPageReadRR}"/>
+                                        </apex:commandLink> -->
+                                         <a href="#" class="{!IF(pageNumber == currentPageReadRR,'current','')}" onClick="setCurrentReadPage('{!pageNumber}');return false;">{!pageNumber}</a>
+                                    </apex:repeat>
+                                       &nbsp;&nbsp;
+                                    <a href="#" id="nextRRDown" onClick="nextRR();return false;" class="next">Next&#62;&#62;</a>
+                                </div>
+                                    <script>setRRPaginationStyle({!currentPageReadRR},{!pageNumbersRR.size});</script>
+                                </apex:outputPanel>
+                                <apex:outputpanel >
+                                    <apex:actionstatus id="statusRead">
+                                   <apex:facet name="start">
+                                     <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+                                            height: 600%;opacity:0.65;width:100%;">
+                                        <div class="waitingHolder" style="top: 10%; width: 100px;">
+                                            <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+                                            <span class="waitingDescription">Please Wait...</span>
+                                        </div>
+                                     </div>
+                                   </apex:facet>
+                                    </apex:actionstatus>
+                                </apex:outputpanel>
+                            </apex:form>
+                        </div>
+                    </td>
+                    </tr>
+                    </table>
+                </div>
+        </div>
+    </div>
+    <!-- end of wrapper -->
+    <c:IntranetFooter />
+    <apex:outputPanel id="modalPanel">
+            <div class="modal fade" id="_contentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="background-color:transparent;">
+              <div class="modal-dialog" style="padding:0px;">
+                    <div class="modal-content">
+                         <apex:outputPanel rendered="{!versionDataforUI.Id != null}" layout="none">
+                          <div id="_modalHeader" class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="margin: 10px;">&times;</button>
+                             <h4 class="modal-title" id="_ModalLabel">{!versionDataforUI.Title}</h4>
+                             <a type="button" style="float:right" class="btn btn-primary" href="/sfc/servlet.shepherd/version/download/{!If(versionDataforUI.Id != null && versionDataforUI.Id != '', versionDataforUI.Id, 'dummy')}">Download</a>
+                             <p><span class="badge"></span></p>
+
+
+                          </div>
+
+                          <div id="_modalBody" class="modal-body">
+                            <embed src="/_swf/188001/sfc/flex/DocViewer.swf" flashvars="shepherd_prefix=/sfc/servlet.shepherd&v={!If(versionDataforUI.Id != null && versionDataforUI.Id != '', versionDataforUI.Id, 'dummy')}&mode=bubble" width="100%" height="100%" align="middle" id="renditionSmall" quality="high" bgcolor="#ffffff" name="renditionSmall" allowscriptaccess="sameDomain" allowfullscreen="true" pluginspage="http://www.adobe.com/go/getflashplayer" wmode="opaque" type="application/x-shockwave-flash"/>
+                          </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!versionDataforUI.Id == null}" layout="none">
+                            <apex:outputLabel value="There is no document attached with this record" style="padding: 20px;" />
+                        </apex:outputPanel>
+                          <div class="modal-footer">
+                              <apex:outputPanel rendered="{!versionDataforUI.Id != null}" layout="none">
+                                <button type="button" onclick="confirmToComplete();">I have read the document and would like to continue</button>
+                              </apex:outputPanel>
+                              <button type="button" data-dismiss="modal">Close</button>
+                          </div>
+                    </div><!-- /.modal-content -->
+              </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+</apex:outputPanel>
+
+<div id="dialog-confirm" style="width: 100%;">
+  <p><span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>{!$Label.Required_Reading_Confirmation}</p>
+</div>
+</body>
+
+
+<script>
+$(document).ready(function(){
+        $("#menuDiv ul:first > li:first").removeClass("active");
+    if({!isMenuAndSearchBarShow} == false) {
+            $('.searchSite').css('display','none');
+            $('.menuWrapper').css('display','none');
+            $('.logoWrapper a').attr('href','javascript:void(0);');
+        }
+});
+
+function confirmToComplete() {
+    setComplete('{!currentRowId}');
+}
+</script>
+ </apex:page>

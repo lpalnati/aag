@@ -1,0 +1,1164 @@
+<apex:page cache="true" expires="60" applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardStylesheets="false">
+<script type="text/javascript">
+(function($){
+
+    routingWizard.controllers.controller('myCtrl',function($scope, $q, $timeout, routingWizardServices, uiGmapIsReady, PagerService ,$sce ,$filter){
+
+        /*
+         *** google maps defaults cfg
+         */
+        // default google map
+        $scope.map = {
+            center: {
+              latitude: 42.0970023,
+              longitude: -79.23532590000002
+            },
+            zoom: 12,
+            options: {
+                maxZoom : 16,
+                minZoom : 3,
+                mapTypeControl: false,
+                streetViewControl: false,
+            },
+            events: {
+                tilesloaded: function(map) {
+                    $scope.$apply(function() {
+                        console.log( "map instance --> ", map );
+                    });
+                },
+            }
+        };
+
+        // default location
+        $scope.locationMarker = {
+            id: 0,
+            coords: {
+                latitude: 42.0970023,
+              longitude: -79.23532590000002
+            },
+            options: {
+                icon: "/resource/PwCCAP/icon/Location.png",
+                title: "You are here!"
+            }
+        };
+
+        // map circles
+        var mapRadius= 5*1609.34;
+        $scope.circles = {
+            id: 1,
+            center: {
+                latitude: 42.0970023,
+              longitude: -79.23532590000002
+            },
+            radius: mapRadius,
+            stroke: {
+                color: '#007AC9',
+                weight: 1.5,
+                opacity: 0.5
+            },
+            fill: {
+                color: '#007AC9',
+                opacity: 0
+            },
+            geodesic: false, // optional: defaults to false
+            draggable: false, // optional: defaults to false
+            clickable: false, // optional: defaults to true
+            editable: false, // optional: defaults to false
+            visible: true, // optional: defaults to true
+            control: {}
+        };
+
+        // infoWindow
+        $scope.infoWindow = {
+            coords: {
+              latitude: 0,
+              longitude: 0
+            },
+            options: {
+              disableAutoPan: false,
+            },
+            show: false,
+            closeInfo : function(){
+                $scope.infoWindow.show = false;
+            }
+          };
+
+        // sortable config
+        $scope.sortableConfig = { 
+            group: 'routeQueue', 
+            animation: 150 
+        };
+        
+        /*
+         * view controller *
+         */
+         /* mobile */
+        $scope.isShowSearchBoxOnMobile = false;
+        $scope.showLocationOnMobile = function(){
+            $scope.isShowSearchBoxOnMobile = true;
+        }
+        // default filter display
+        $scope.isShowFilter = 'hide';
+        // filter display
+        $scope.setFilterDisplay = function(isShow){
+            $scope.isShowFilter = isShow;
+            $scope.myLocationsViewOnMobile = false;
+            $scope.routeQueueViewOnMobile = false;
+        }
+        $scope.showFilter = function(){
+            return $scope.isShowFilter === 'show';
+        }
+        $scope.hideFilter = function(){
+            return $scope.isShowFilter === 'hide';
+        }
+        // filterViews
+        $scope.setConfigDisplay = function(key){
+            $scope.filterViewsDisplay[key] = !$scope.filterViewsDisplay[key];
+        }
+        // filter event
+        $scope.showOptions = function(option){
+            option.isDisplay = !option.isDisplay;
+        }
+
+        // default view: map 
+        $scope.routingView = 'map';
+        //change view
+        $scope.setView = function(view){
+            $scope.routingView = view;
+        }
+
+        $scope.showMap = function(){
+            return $scope.routingView === 'map';
+        }   
+
+        $scope.showTable = function(){
+            return $scope.routingView === 'table';
+        }
+
+        // Mylocation view 
+        $scope.myLocationsView = 1;
+        $scope.myLocationsViewOnMobile = false;
+        $scope.setMyLocationView = function(v){
+            $scope.myLocationsView = v;
+            $scope.myLocationsViewOnMobile = false;
+            $scope.isRightPanelShow = $scope.myLocationsViewOnMobile||$scope.routeQueueViewOnMobile;
+        }
+        $scope.setMyLocationViewOnMobile = function(){
+            $scope.myLocationsViewOnMobile = !$scope.myLocationsViewOnMobile;
+            $scope.isShowFilter = 'hide';
+            $scope.isRightPanelShow = $scope.myLocationsViewOnMobile||$scope.routeQueueViewOnMobile;
+            //hide the infoWindow
+            $scope.infoWindow.show = false;     
+        }
+        $scope.showMyLocationIcon = function(){
+            return $scope.myLocationsView === 1;
+        }
+        $scope.showMyLocationDetail = function(){
+            return $scope.myLocationsView === 2;
+        }
+
+        // Route Queue view 
+        $scope.routeQueueView = 1;
+        $scope.routeQueueViewOnMobile = false;
+        $scope.setRouteQueueView = function(v){
+            $scope.routeQueueView = v;
+            $scope.routeQueueViewOnMobile = false;
+            $scope.isRightPanelShow = $scope.myLocationsViewOnMobile||$scope.routeQueueViewOnMobile;
+        }
+        $scope.setRouteQueueViewOnMobile = function(){
+            $scope.routeQueueViewOnMobile = !$scope.routeQueueViewOnMobile;
+            $scope.isShowFilter = 'hide';
+            $scope.isRightPanelShow = $scope.myLocationsViewOnMobile||$scope.routeQueueViewOnMobile;
+            //hide the infoWindow
+            $scope.infoWindow.show = false;
+        }
+        $scope.showRouteQueueIcon = function(){
+            return $scope.routeQueueView === 1;
+        }
+        $scope.showRouteQueueDetail = function(){
+            return $scope.routeQueueView === 2;
+        }
+
+        /*
+         * search box behaviour
+         */
+        $scope.searchBoxLocation = {}
+        var searchBoxEvents = {
+          places_changed: function (searchBox) {
+            var place = searchBox.getPlaces()[0];
+            var lat = place.geometry.location.lat(),lon = place.geometry.location.lng();
+            var location = $scope.searchBoxLocation = {
+                id: Date.now(),
+                address: place.formatted_address,
+                lat: lat,
+                lon: lon,
+                title: "My Location"
+            }
+
+            $scope.addToRouteQueue(0,0,location);
+            $scope.submitFilter();
+            moveToLocation(location); 
+          }
+        };
+
+        // search box
+        $scope.searchbox = { 
+          template:'searchbox.tpl.html', 
+          events: searchBoxEvents
+        };
+
+        /* Go To My Location */
+        $scope.goToMyLocation = function(){
+        if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var location = $scope.searchBoxLocation = {
+                        id: Date.now(),
+                        address: "My Location",
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude,
+                        title: "My Location"
+                    }
+                    $scope.searchedLocation = "My Location";
+                    $scope.addToRouteQueue(0,0,location);
+                    $scope.submitFilter();
+                    moveToLocation(location);
+                }, function(error) {
+                    console.log(error.message);
+                },{
+                    timeout: 2000,
+                    maximumAge:6000000,
+                    enableHighAccuracy: true
+                });
+            } else {
+                // Browser doesn't support Geolocation
+                $scope.errorMessage = "Get location failed!";
+                $('#errorMessage').modal('show');   
+            }
+        }
+
+        /*
+         **** init behaviour
+         */
+        $scope.lookupUsers = {};
+        $scope.initResult = function(){
+            // initial method
+            routingWizardServices.getInitialResultWhenPageLoad().then(function(value){
+                if(value.Message == "Success" ) {
+                    $scope.currentLocation = value.CurrentLocation;
+                    $scope.myLocations = value.MyLocations;
+                    //init multiselect options
+                    $scope.searchObjects = function () {
+                        return $q(function (resolve, reject) {
+                            $timeout(function () {
+                                resolve(value.SearchObjects);
+                                $scope.searchObjects = value.SearchObjects;
+                                $scope.selectedObject = value.SearchObjects;
+                            }, 100);
+                        });
+                    };
+                    //init lookup setting
+                    $scope.lookupUsers.forEvent = value.Users;
+                    $scope.lookupUsers.forTask = value.Users;
+                    angular.forEach(value.Users, function(user,userIndex){
+                        if(user.Id === value.CurrentUser){
+                            $scope.taskLookup = user.FirstName?user.FirstName + " " + user.LastName:user.LastName;
+                            $scope.eventLookup = user.FirstName?user.FirstName + " " + user.LastName:user.LastName;
+                            $scope.task.selectedUsers = user;
+                            $scope.event.selectedUsers = user;
+                        }
+                    });
+
+                    $scope.size = value.Sizes;
+                    $scope.selectedSize = $scope.size[0];
+                    $scope.timeZone = value.TimeZone;
+
+                    // filterView model
+                    $scope.filterView = value.SearchConfigs;
+                    $scope.filterViewsDisplay = {};
+                    for(var sfKey in value.SearchConfigs){
+                        $scope.filterViewsDisplay[sfKey] = true;
+                        for(var sfIndex in value.SearchConfigs[sfKey]){
+                            if(sfIndex != "remove"){
+                                $scope.filterView[sfKey][sfIndex].isDisplay = false;
+                                if($scope.filterView[sfKey][sfIndex].InputType == "picklist"){
+                                    $scope.filterView[sfKey][sfIndex].Options.push("All");
+                                    $scope.filterView[sfKey][sfIndex].selectedValue = "All";
+                                }else if ($scope.filterView[sfKey][sfIndex].InputType == "boolean") {
+                                    $scope.filterView[sfKey][sfIndex].selectedValue = "All";
+                                }else if($scope.filterView[sfKey][sfIndex].InputType == "multipicklist"){
+                                    $scope.filterView[sfKey][sfIndex].selectedValue = [];
+                                    for(var optionindex in $scope.filterView[sfKey][sfIndex].Options){
+                                        if(optionindex != "remove"){
+                                            var option = $scope.filterView[sfKey][sfIndex].Options[optionindex];
+                                            if ($scope.filterView[sfKey][sfIndex].DefaultOptions.indexOf(option) >= 0) {
+                                                $scope.filterView[sfKey][sfIndex].selectedValue.push(true); 
+                                            }else{
+                                                $scope.filterView[sfKey][sfIndex].selectedValue.push(false); 
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //show all views on pc
+                    if(window.innerWidth > 450){
+                        $scope.myLocationsView = 2;
+                        $scope.routeQueueView = 2;
+                        $scope.isShowFilter = 'show';
+                    }
+
+                    // init google map
+                    uiGmapIsReady.promise(1).then(function(instance){
+                        // moveToLocation(location);
+                        searchJamestown(value.SearchObjects);
+                        if(window.innerWidth < 450){
+                            $scope.map.options.zoomControlOptions = {
+                                position: google.maps.ControlPosition.RIGHT_CENTER
+                            };
+                            $scope.infoWindow.options = {
+                              maxWidth: 270
+                            }
+                        }
+                    });
+
+                    $timeout(function() {
+                        document.querySelector(".search-object div button").click();
+                        document.querySelector(".search-object div button").click();
+                    });
+                } else {
+                    console.log("init error "+value.Message);
+                }
+            });
+        }
+        // do search base jamestown
+        function searchJamestown(obj){
+            var location = $scope.searchBoxLocation = {
+                id: Date.now(),
+                address: "Jamestown, NY, United States",
+                lat: 42.0970023,
+                lon: -79.23532590000002,
+                title: "My Location"
+            }
+            $scope.routeQueues.push(location);
+            $scope.selectedObject = obj;
+
+            $scope.submitFilter();
+            $scope.searchedLocation = "Jamestown, NY, United States";
+            moveToLocation(location); 
+            $scope.forInitSearchBoxShow = 1;
+        }
+        
+        /*
+         *** apply filter behaviour
+         */
+        $scope.submitFilter = function(){
+            // draw the map
+            $scope.circles.radius = this.selectedSize * 1609.34;
+            if(window.innerWidth < 450){
+                // for small screen
+                if(this.selectedSize < 10 ){
+                    $scope.map.zoom = 11;
+                }else if(this.selectedSize >=10 && this.selectedSize < 20){
+                    $scope.map.zoom = 10;
+                }else if(this.selectedSize >= 20 && this.selectedSize < 35){
+                    $scope.map.zoom = 9;
+                }else if(this.selectedSize >= 35){
+                    $scope.map.zoom = 8;
+                }
+            }else{
+                //for large screen
+                if(this.selectedSize < 10 ){
+                    $scope.map.zoom = 12;
+                }else if(this.selectedSize >=10 && this.selectedSize < 20){
+                    $scope.map.zoom = 11;
+                }else if(this.selectedSize >= 20 && this.selectedSize < 35){
+                    $scope.map.zoom = 10;
+                }else if(this.selectedSize >= 35){
+                    $scope.map.zoom = 9;
+                }
+            }
+            //clear the markers events
+            $scope.randomMarkersEvents = {};
+            // args 
+            if($scope.searchBoxLocation.address){
+                var filterLst = [];
+                var l = {};
+                // args:l for location
+                l.Address = $scope.searchBoxLocation.address;
+                l.Unit = $scope.currentLocation.Unit;
+                l.Size = $scope.selectedSize;
+                l.Latitude = $scope.searchBoxLocation.lat;
+                l.Longitude = $scope.searchBoxLocation.lon;
+
+                // args:filterLst for filters 
+                if($scope.selectedObject){
+                    for(var i in $scope.selectedObject){
+                        if(i != "remove"){
+                            var filter = {};
+                            filter.SearchObj = $scope.selectedObject[i];
+                            filter.SearchConfigs = [];
+                            for(var sfindex in $scope.filterView[filter.SearchObj]){
+                                if(sfindex != "remove"){
+                                    var scfg = {};
+                                    scfg.DisplayName = $scope.filterView[filter.SearchObj][sfindex].DisplayName;
+                                    scfg.InputType = $scope.filterView[filter.SearchObj][sfindex].InputType;
+                                    scfg.IsRange = $scope.filterView[filter.SearchObj][sfindex].IsRange;
+                                    if(scfg.InputType == "boolean" || scfg.InputType == "picklist"){
+                                        scfg.Options = [];
+                                        scfg.OutPut1 = $scope.filterView[filter.SearchObj][sfindex].selectedValue = $scope.filterView[filter.SearchObj][sfindex].selectedValue;
+                                        if($scope.filterView[filter.SearchObj][sfindex].selectedValue != "All"){
+                                            filter.SearchConfigs.push(scfg);
+                                        }
+                                    }else{
+                                        scfg.Options = [];
+                                        scfg.OutPut1 = '';
+                                        for(var scOptions in $scope.filterView[filter.SearchObj][sfindex].selectedValue){
+                                            if($scope.filterView[filter.SearchObj][sfindex].selectedValue[scOptions] && scOptions != "remove"){
+                                                scfg.Options.push($scope.filterView[filter.SearchObj][sfindex].Options[scOptions]);
+                                            }
+                                        }
+                                        if(scfg.Options.length > 0){
+                                            filter.SearchConfigs.push(scfg);
+                                        }
+                                    }
+                                }
+                            };
+                            filterLst.push(filter);
+                        }
+                    }
+                }
+
+                // call back-end
+                routingWizardServices.queryData(filterLst, l).then(function(value){
+                    if (value.Message == 'Success') {
+                        $scope.queryDataCallBack = value;
+                        // fix marker icons cant change bug after click
+                        createMarkers(value);
+                        setTableViews(value);
+
+                        //hide the search page on mobile
+                        $scope.isShowSearchBoxOnMobile = false;
+                        //hide the infoWindow
+                        $scope.infoWindow.show = false;
+                        if($scope.forInitSearchBoxShow){
+                            $scope.isShowSearchBoxOnMobile = true;
+                            $scope.forInitSearchBoxShow = 0;
+                        }
+                        $timeout(function() {
+                            document.querySelector(".table-nav li:first-child a").click();
+                            document.querySelector(".table-nav-mobile div:first-child button").click();
+                            document.querySelector(".table-nav-mobile div:first-child button").className += " mobileBtnActive";
+                        });
+                    }else{
+                        console.log("submit error "+value.Message);
+                    }
+                });
+            }
+        };
+
+        // marker info window behaviour 
+        $scope.triggerAddToRouteQueue = function(){
+            $timeout(function() {
+                angular.element('#queue').triggerHandler('click');
+              });
+        }
+        $scope.triggerGoToRecord = function(){
+            $timeout(function() {
+                angular.element('#record').triggerHandler('click');
+              });
+        }
+        $scope.triggerAddToMyLocation = function(){
+            $timeout(function() {
+                angular.element('#mylocation').triggerHandler('click');
+              });
+        }
+
+        // info window event
+        $scope.routeQueues = [];
+        $scope.addToRouteQueue = function(infoFromTb ,infoFromSearch, infoFromMyLocation){
+            if(infoFromTb){
+                var location = {
+                    id: infoFromTb.Id,
+                    address: infoFromTb.index.split("_")[0],
+                    lat: infoFromTb.Geo_Location__Latitude__s,
+                    lon: infoFromTb.Geo_Location__Longitude__s,
+                    title: infoFromTb.Name
+                }
+            }else if(infoFromSearch){
+                var location = {
+                    id: infoFromSearch.id.split("_")[1],
+                    address: infoFromSearch.id.split("_")[0],
+                    lat: infoFromSearch.latitude,
+                    lon: infoFromSearch.longitude,
+                    title: infoFromSearch.title.split("_")[1]
+                }
+            }else if(infoFromMyLocation){
+                var location = {
+                    id: infoFromMyLocation.id,
+                    address: infoFromMyLocation.address,
+                    lat: infoFromMyLocation.lat,
+                    lon: infoFromMyLocation.lon,
+                    title: infoFromMyLocation.title
+                }
+            }else{
+                var location = {
+                    id: this.markerInfo[0].markerId,
+                    address: this.markerInfo[0].markerAddress,
+                    lat: this.markerInfo[0].markerLat,
+                    lon: this.markerInfo[0].markerLon,
+                    title: this.markerInfo[0].markerName
+                };
+            }
+
+            for(var i in this.routeQueues){
+                if(this.routeQueues[i].id === location.id && i != "remove"){
+                    $scope.errorMessage = "Cannot add duplicate location!";
+                    $('#errorMessage').modal('show');
+                    return;
+                }else if(location.title === "My Location" && this.routeQueues[i].title === "My Location" && i != "remove"){
+                    this.routeQueues.splice(i,1);
+                }
+            }
+            this.routeQueues.push(location);
+            addSuccessMessage();
+        }
+        $scope.removeRouteQueue = function(routeQueue){
+            for(var i in this.routeQueues){
+                if(this.routeQueues[i].id === routeQueue.id && i != "remove"){
+                    this.routeQueues.splice(i,1);
+                }   
+            }
+        }
+        $scope.setStartAndEnd = function(){
+            this.endLocation = this.routeQueues[this.routeQueues.length-1];
+            this.startLocation = this.routeQueues[0];
+        }
+        $scope.calculateRoute = function(){
+            if( navigator.platform.indexOf("iPhone") != -1 || 
+                navigator.platform.indexOf("iPod") != -1 || 
+                navigator.platform.indexOf("iPad") != -1 ){
+                calRouteOnMobile(this.routeQueues, this.startLocation, this.endLocation);
+                // calRouteOnMobile(this.startLocation, this.endLocation);
+            }else{
+                calRouteOnDeskTop(this.routeQueues, this.startLocation, this.endLocation);
+            }
+        }
+        /**/
+        function calRouteOnMobile(routeQueues, startLocation, endLocation){
+            if(routeQueues.length > 1 && startLocation != endLocation){
+                var locations = '';
+                var start = '/'+startLocation.lat+','+startLocation.lon;
+                var end = "";
+                var routeQueuesForCal = [];
+                for(var rq in routeQueues){
+                    if(rq!= "remove" && routeQueues[rq]!= startLocation){
+                        routeQueuesForCal.push(routeQueues[rq]);
+                    }
+                }
+                for(var i=0; i <= routeQueuesForCal.indexOf(endLocation); i++){
+                    end = end + '/' + routeQueuesForCal[i].lat + ',' + routeQueuesForCal[i].lon 
+                }
+                locations = start + end;
+                if(locations){
+                    window.open('https://www.google.com/maps/dir'+locations);
+                }else{
+                    console.log("model missing");
+                }
+            }else{
+                console.log("calculateRoute: need more than two locations");
+                $scope.errorMessage = "Need more than two locations";
+                $('#errorMessage').modal('show');
+            }
+        }
+        function calRouteOnDeskTop(routeQueues, startLocation, endLocation){
+            if(routeQueues.length > 1 && startLocation != endLocation){
+                var locations = '';
+                var start = '/'+startLocation.lat+','+startLocation.lon;
+                var end = "";
+                var routeQueuesForCal = [];
+                for(var rq in routeQueues){
+                    if(rq!= "remove" && routeQueues[rq]!= startLocation){
+                        routeQueuesForCal.push(routeQueues[rq]);
+                    }
+                }
+                for(var i=0; i <= routeQueuesForCal.indexOf(endLocation); i++){
+                    end = end + '/' + routeQueuesForCal[i].lat + ',' + routeQueuesForCal[i].lon 
+                }
+                locations = start + end;
+                if(locations){
+                    window.open('https://www.google.com/maps/dir'+locations);
+                }else{
+                    console.log("model missing");
+                }
+            }else{
+                console.log("calculateRoute: need more than two locations");
+                $scope.errorMessage = "Need more than two locations";
+                $('#errorMessage').modal('show');
+            }
+        }
+
+        /*
+        function calRouteOnMobile(startLocation, endLocation){
+            var selectedLocation = endLocation;
+            var begin = startLocation;
+            var des = selectedLocation;
+            var url = '';
+            if(!selectedLocation){
+                $scope.errorMessage = "You must choose the destination!";
+                $('#errorMessage').modal('show');
+                return ;
+            }
+            if(begin.lat == des.lat&&begin.lon == des.lon){
+                showModalDialog('Start and end location cannot be the same');
+                $scope.errorMessage = "Start and end location cannot be the same";
+                $('#errorMessage').modal('show');
+                return ;
+            }
+
+            if(window.navigator.userAgent.toLowerCase().indexOf('mobilesdk')>0){
+                url = 'https://www.google.com/maps/dir'+buildRoutUrlInSf1(begin,des);
+                sforce.one.navigateToURL(url);
+            }else{
+                url = "comgooglemaps://?saddr="+begin.lat+','+begin.lon+"&daddr="+des.lat+","+des.lon+"&directionsmode=driving";
+                window.open(url);
+            }
+             
+
+            function buildRoutUrlInSf1(begin,des){
+                var result = '';
+                result = result+'/'+begin.lat+','+begin.lon+'/'+des.lat+","+des.lon;
+                return result;
+            }
+        }
+        */
+
+        $scope.clearRouteQueue = function(){
+            this.routeQueues = [];
+        }
+
+        $scope.goToRecord = function(infoFromTb, infoFromSearch){
+            if(infoFromTb){
+                var id = infoFromTb.Id;
+            }else if(infoFromSearch){
+                var group = infoFromSearch.title.split("_")[0];
+                var index = infoFromSearch.id.split("^")[0];
+                var id = this.queryDataCallBack.ObjectMap[group][index].Id;
+            }else{
+                var id = this.markerInfo[0].markerId;
+            }
+            if(window.location.ancestorOrigins[0]){
+                var url = "https://"+window.location.hostname+"/one/one.app#/sObject/"+id+"/view";
+            }else{
+                var url = "https://"+window.location.hostname+"/"+id;
+            }
+            window.open(url);
+            
+        }
+        $scope.addToMyLocation = function(infoFromTb){
+            if(infoFromTb){
+                var thisLocation = {
+                    Geo_Location__Latitude__s: infoFromTb.Geo_Location__Latitude__s,
+                    Geo_Location__Longitude__s: infoFromTb.Geo_Location__Longitude__s,
+                    Location_Name__c: infoFromTb.index.split("_")[0]
+                }
+            }else{
+                var thisLocation = {
+                    Geo_Location__Latitude__s: this.markerInfo[0].markerLat,
+                    Geo_Location__Longitude__s: this.markerInfo[0].markerLon,
+                    Location_Name__c: this.markerInfo[0].markerAddress
+                }
+            }
+            for(var i in $scope.myLocations){
+                if($scope.myLocations[i].Location_Name__c === thisLocation.Location_Name__c){
+                    $scope.errorMessage = "Cannot add duplicate location!";
+                    $('#errorMessage').modal('show');
+                    return;
+                }
+            }
+            routingWizardServices.addToMyLocation(thisLocation).then(function(value){
+                if(value.Message === "Success"){
+                    $scope.myLocations.unshift(value.obj);
+                }else{
+                    console.log("add to my location callback Message: "+value.Message);
+                    $scope.errorMessage = "Add to my location back-end error Message: "+value.Message;
+                    $('#errorMessage').modal('show');
+                }
+            })
+        }
+        $scope.deleteMyLocation = function(location, index){
+            routingWizardServices.deleteMyLocation(location).then(function(value){
+                if(value.Message === "Success"){
+                    for(var i in $scope.myLocations){
+                        if($scope.myLocations[i].Id === value.obj.Id){
+                            $scope.myLocations.splice(i, 1);
+                        }
+                    }
+                }else{
+                    console.log("delete location callback Message: "+value.Message);
+                    $scope.errorMessage = "Delete location back-end error Message: "+value.Message;
+                    $('#errorMessage').modal('show');
+                }
+            })  
+        }
+
+        $scope.moveToMyLocation = function(obj){
+            var location = $scope.searchBoxLocation = {
+                id: Date.now(),
+                address: obj.Location_Name__c,
+                lat: obj.Geo_Location__Latitude__s,
+                lon: obj.Geo_Location__Longitude__s,
+                title: "My Location"
+            }
+            $scope.searchedLocation = obj.Location_Name__c;
+            $scope.submitFilter();
+            $scope.addToRouteQueue(0,0,location);
+            moveToLocation(location);
+        }
+
+        $scope.searchFromMarker = function(){
+            this.searchOption = {};
+            if(this.queryDataCallBack){
+                $scope.infoWindow.show = false;
+                var value = this.queryDataCallBack;
+                if(this.doSearchMarker){
+                    var searchResult = [];
+                    var lds = this.doSearchMarker.toLowerCase();
+                    if(this.markersForSearch){
+                        for(var i in this.markersForSearch){
+                            if(i != "remove"){
+                                var markertitle = this.markersForSearch[i].title.split("_")[1].toLowerCase();
+                                // if(markertitle.indexOf(lds) > -1){
+                                //  searchResult.push(this.markersForSearch[i]);
+                                // }
+                                var markertitleArr = markertitle.split(" ");
+                                for(var titleIndex in markertitleArr){
+                                    if(titleIndex != "remove" && markertitleArr[titleIndex].indexOf(lds) == 0){
+                                        searchResult.push(this.markersForSearch[i]);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    this.searchOption.isDisplay = true;
+                    this.searchOption.options = searchResult;
+                }else{
+                    this.searchOption.isDisplay = false;
+                    var searchResult = this.markersForSearch;
+                }
+                createMarkers(value, searchResult);
+            }
+        }
+        $scope.showTheMarkerInfo = function(obj){
+            this.searchOption.isDisplay = false;
+            // this.$parent.doSearchMarker = obj.title.split("_")[1];
+            this.$parent.doSearchMarker = "";
+            var value = this.queryDataCallBack;
+            var selectedIcon = "/resource" + this.queryDataCallBack.SelectedIcons[obj.title.split("_")[0]];
+            for(var i in this.markersForSearch){
+                if(i !== "remove"){
+                    this.markersForSearch[i].id = this.markersForSearch[i].id.split("^")[0];
+                    var group = this.markersForSearch[i].title.split("_")[0];
+                    this.markersForSearch[i].icon = "/resource" + this.queryDataCallBack.Icons[group];
+                    if( this.markersForSearch[i].id === obj.id.split("^")[0]){
+                        this.markersForSearch[i].icon = selectedIcon;
+                    }
+                }
+            }
+            createMarkers(value, this.markersForSearch);
+            moveToMarker(obj);
+        }
+
+        function addSuccessMessage(){
+            angular.element('.successMessage').addClass("message-fade-in");
+            $timeout(function() {
+                angular.element('.successMessage').removeClass("message-fade-in");
+            }, 1000);
+        }
+        /*
+         *** commons 
+         */
+         function moveToMarker(location){
+            $scope.map.center = {
+              latitude: location.latitude,
+              longitude: location.longitude
+            };
+            $scope.map.zoom = 14;
+         }
+
+        function moveToLocation(location){
+            var lat = location.lat;
+            var lon = location.lon;
+            // render google map
+            // map 
+            $scope.map.center = {
+              latitude: lat,
+              longitude: lon
+            };
+            // mylocation
+            $scope.locationMarker.coords = {
+                latitude: lat,
+                longitude: lon
+            };
+
+            // circles
+            $scope.circles.center = {
+                latitude : lat,
+                longitude : lon
+            };  
+        }
+
+        // set table view
+        function setTableViews(value){
+            //set table view
+            $scope.tableView = {};
+            for(var confg in value.DetailsConfigs){
+                $scope.tableView[confg] = {};
+                $scope.tableView[confg].title = [];
+                $scope.tableView[confg].content = [];
+                $scope.tableView[confg].afterFilter = [];
+                $scope.tableView[confg].afterPagination = [];
+                var apiName = [];
+                for(var titleIndex in value.DetailsConfigs[confg]){
+                    if(titleIndex != "remove"){
+                        var confgDetail = value.DetailsConfigs[confg][titleIndex]; 
+                        if(confgDetail.FieldDisplayAreas.indexOf("Table View") > 0 ){
+                            $scope.tableView[confg].title.push(value.DetailsConfigs[confg][titleIndex].FieldDisplayName);
+                            apiName.push(value.DetailsConfigs[confg][titleIndex].FieldAPIName);
+                        }
+                    }
+                }
+                for(var contentIndex in value.ObjectMap[confg]){
+                    if(contentIndex != "remove"){
+                        var obj = value.ObjectMap[confg][contentIndex];
+                        var contentDetail = {};
+                        contentDetail.forTable = [];
+                        contentDetail.info = {};
+                        for(var index in apiName){
+                            if(index != 'remove'){
+                                if(apiName[index] === "Address"){
+                                    contentDetail.forTable.push(contentIndex.split("_")[0]);
+                                }else{
+                                    var objKey = apiName[index];
+                                    contentDetail.forTable.push(obj[objKey]);
+                                }
+                                contentDetail.info = obj;
+                                contentDetail.info.index = contentIndex;
+                            }
+                        }
+                        $scope.tableView[confg].content.push(contentDetail);
+                        $scope.tableView[confg].afterFilter.push(contentDetail);
+                    }
+                }
+                $scope.setPage(confg, $scope.tableView[confg].afterFilter, 1);
+            }
+        }
+
+        // create Markers 
+        function createMarkers(value, searchResult){
+            var createMarker = function(index, idKey, marker){
+
+                if( idKey == null ){
+                    idKey = 'id';
+                }
+
+                var base_url = window.location.origin; //get current base url.
+
+                var ret = {
+                    icon: base_url+marker.icon, //Dynamically get the current icon address.
+                    latitude: marker.lat,
+                    longitude: marker.lon,
+                    title: marker.title
+                };
+                ret[idKey] = index + "^" +new Date().getUTCMilliseconds();
+                return ret;
+            }
+            var markers = [];
+            if(searchResult){
+                for(var i in searchResult){
+                    if(i != "remove"){
+                        var objKey = searchResult[i].id.split("^")[0];
+                        var marker = {
+                            lat: searchResult[i].latitude,
+                            lon: searchResult[i].longitude,
+                            title: searchResult[i].title,
+                            icon: searchResult[i].icon
+                        }
+                        markers.push(createMarker(objKey,'id',marker));
+                    }
+                }
+            }else{
+                for(var i in $scope.selectedObject){//array
+                    if(value.ObjectMap[$scope.selectedObject[i]]){
+                        for(var objKey in value.ObjectMap[$scope.selectedObject[i]]){// map
+                            var obj = value.ObjectMap[$scope.selectedObject[i]][objKey];
+                            var marker = {
+                                lat: objKey.split("^")[0].split("_")[2],
+                                lon: objKey.split("^")[0].split("_")[3],
+                                title: $scope.selectedObject[i]+"_"+ obj.Name,
+                                icon: "/resource"+$scope.queryDataCallBack.Icons[$scope.selectedObject[i]]
+                            }
+                            markers.push(createMarker(objKey,'id',marker));
+                        }
+                    }
+                }
+                $scope.markersForSearch = markers;
+            }
+
+            $scope.randomMarkers = markers;
+
+            $scope.randomMarkersEvents = {
+                click: function(marker, eventName, model, args){
+                    var index = model.id.split("^")[0];
+                    var modelId = model.id.split("^")[0].split("_")[1];
+                    var modelAddress = model.id.split("^")[0].split("_")[0];
+                    $scope.infoWindow.show = true;
+                    $scope.infoWindow.coords = { latitude: model.latitude - (-0.0005), longitude:  model.longitude};
+                    // $scope.map.center = {
+                    //        latitude: model.latitude,
+                    //        longitude: model.longitude
+                    //      }
+                    // set baseinfo 
+                    $scope.markerInfo = [];
+                    var markerInfoBs = {
+                        markerId: modelId,
+                        markerName: model.title.split("_")[1],
+                        markerAddress: modelAddress,
+                        markerLat: model.latitude,
+                        markerLon: model.longitude,
+                        markerGroup: model.title.split("_")[0]
+                    }
+                    $scope.markerInfo.push(markerInfoBs);
+
+                    // set other info 
+                    var groupOfInfoWindow = model.title.split("_")[0];
+                    var detailsOfInfoWindow = $scope.queryDataCallBack.ObjectMap[groupOfInfoWindow][index];
+                    for(var d in $scope.queryDataCallBack.DetailsConfigs[groupOfInfoWindow]){
+                        if(d != "remove" && $scope.queryDataCallBack.DetailsConfigs[groupOfInfoWindow][d].FieldDisplayAreas.indexOf("Info Window") >= 0){
+                            var displayTitle = $scope.queryDataCallBack.DetailsConfigs[groupOfInfoWindow][d].FieldDisplayName;
+                            var apiName = $scope.queryDataCallBack.DetailsConfigs[groupOfInfoWindow][d].FieldAPIName;
+                            var displayValue = detailsOfInfoWindow[apiName] !== undefined ?detailsOfInfoWindow[apiName]:" ";
+                            if(displayTitle == "Address"){
+                                var info = { displayTitle : "Address" + ": ", displayValue: index.split("_")[0]};
+                            }else{
+                                var info = { displayTitle : displayTitle + ": ", displayValue: displayValue};
+                            }
+                            $scope.markerInfo.push(info);
+                        }
+                    }
+                    
+                    // set icon
+                    var selectedIcon = "/resource" + $scope.queryDataCallBack.SelectedIcons[groupOfInfoWindow];
+                    for(var i in $scope.randomMarkers){
+                        if($scope.randomMarkers[i].icon === selectedIcon){
+                            var orgIcon = $scope.randomMarkers[i].title.split("_")[0];
+                            $scope.randomMarkers[i].icon = "/resource" + $scope.queryDataCallBack.Icons[orgIcon];
+                        }
+                    }
+                    marker.model.icon = selectedIcon;
+                }
+            }
+        }
+
+        /* Show More Actions Model */
+        $scope.showAction = function(){
+            $('#moreActions').modal('show');
+        }
+
+        // fix error
+        $scope.filterOptionHtml = function(option){
+            try{
+                if(option != undefined){
+                    option = option.toString();
+                }
+                return $sce.trustAsHtml(option);    
+            }catch(e){
+                console.log(option + "---" + e)
+            }
+        }
+
+        /* table search input */
+        $scope.searchTable = function(){
+            for(var key in $scope.tableView){
+                var beforeFilter = $scope.tableView[key].content;
+                $scope.tableView[key].afterFilter = $filter("filter")(beforeFilter, $scope.tableInput);
+                $scope.setPage(key, $scope.tableView[key].afterFilter, 1);
+            }
+        }
+
+        // set page
+        $scope.setPage = function(group, totalItems, page){
+            if(page < 1 || page > $scope.tableView[group].afterPagination.totalPages){
+                $scope.tableView[group].afterPagination.pages = 0;
+                return;
+            }
+            if(!totalItems.length){
+                $scope.tableView[group].afterPagination.pages = 0;
+                return;
+            }
+            // get page object from service
+            var pager = PagerService.getPage(totalItems.length, page, 20);
+            // current page of items
+            pager.currentPageItems = totalItems.slice(pager.startIndex, pager.endIndex + 1); 
+            $scope.tableView[group].afterPagination = pager;
+        }
+
+        // mobile table nav-btn style
+        $scope.styleChange = function(){
+            if(document.querySelector('.mobileBtnActive')){
+                document.querySelector('.mobileBtnActive').className = "btn btn-primary table-nav-btn";
+            }
+            event.srcElement.className = "btn btn-primary table-nav-btn mobileBtnActive";
+        }
+
+        /* Create New Task */
+        $scope.task = {
+            priority : "normal",
+            status : "inProgress"
+        };
+        $scope.createNewTask = function(){
+            var sobject = {};
+            if($scope.forMoreActions && $scope.forMoreActions.id){
+                if($scope.forMoreActions.group == 'Contact' || $scope.forMoreActions.group == 'Lead'){
+                    sobject.WhoId = $scope.forMoreActions.id;
+                }else{
+                    sobject.WhatId = $scope.forMoreActions.id;
+                }
+            }else{
+                if($scope.markerInfo[0].markerGroup == 'Contact' || $scope.markerInfo[0].markerGroup == 'Lead'){
+                    sobject.WhoId = $scope.markerInfo[0].markerId;
+                }else{
+                    sobject.WhatId = $scope.markerInfo[0].markerId;
+                }
+            }
+            sobject.Subject = $scope.task.subject;
+            sobject.Status = $scope.task.status;
+            sobject.Priority = $scope.task.priority;
+            sobject.OwnerId = $scope.task.selectedUsers.Id;
+            sobject.ActivityDate = new Date($scope.task.dueDate).getTime();
+            routingWizardServices.insertTask(sobject).then(function(value){
+                $scope.forMoreActions = {};
+                if (value.Message == 'Success') {
+                    
+                }else{
+                    console.log(value.Message);
+                }
+            });
+        }
+
+        /* Create New Event */
+        $scope.event = {
+        };
+        $scope.createNewEvent = function(){
+            var eventObj = {};
+            if($scope.forMoreActions && $scope.forMoreActions.id){
+                if($scope.forMoreActions.group == 'Contact' || $scope.forMoreActions.group == 'Lead'){
+                    eventObj.WhoId = $scope.forMoreActions.id;
+                }else{
+                    eventObj.WhatId = $scope.forMoreActions.id;
+                }
+            }else{
+                if($scope.markerInfo[0].markerGroup == 'Contact' || $scope.markerInfo[0].markerGroup == 'Lead'){
+                    eventObj.WhoId = $scope.markerInfo[0].markerId;
+                }else{
+                    eventObj.WhatId = $scope.markerInfo[0].markerId;
+                }
+            }
+
+            eventObj.Subject = $scope.event.subject;
+
+            var startDate = new Date($scope.event.startDate+ " 00:00");
+            startDate.setHours($scope.event.startTime.getHours());
+            startDate.setMinutes($scope.event.startTime.getMinutes());
+            var endDate = new Date($scope.event.endDate + " 00:00");
+            endDate.setHours($scope.event.endTime.getHours());
+            endDate.setMinutes($scope.event.endTime.getMinutes());
+            eventObj.StartDateTime = startDate.getTime()
+            eventObj.EndDateTime = endDate.getTime();
+            eventObj.OwnerId = $scope.event.selectedUsers.Id;
+
+            if(eventObj.StartDateTime > eventObj.EndDateTime){
+                $scope.errorMessage = "Invalid date";
+                $('#errorMessage').modal('show');
+                return;
+            }
+
+            routingWizardServices.insertEvent(eventObj).then(function(value){
+                $scope.forMoreActions = {};
+                if (value.Message == 'Success') {
+                    
+                }else{
+                    console.log(value.Message);
+                }
+            });
+        }
+        /* Log A Call */
+        $scope.phoneCall = {};
+        $scope.logCall = function(){
+            var call = {};
+            call.Type = 'Phone Call - Prospect';
+
+            if($scope.forMoreActions && $scope.forMoreActions.id){
+                if($scope.forMoreActions.group == 'Contact' || $scope.forMoreActions.group == 'Lead'){
+                    call.WhoId = $scope.forMoreActions.id;
+                }else{
+                    call.WhatId = $scope.forMoreActions.id;
+                }
+            }else{
+                if($scope.markerInfo[0].markerGroup == 'Contact' || $scope.markerInfo[0].markerGroup == 'Lead'){
+                    call.WhoId = $scope.markerInfo[0].markerId;
+                }else{
+                    call.WhatId = $scope.markerInfo[0].markerId;
+                }
+            }
+            call.Subject = $scope.phoneCall.subject;
+            call.Description = $scope.phoneCall.comments;
+
+            routingWizardServices.insertTask(call).then(function(value){
+                $scope.forMoreActions = {};
+                if (value.Message == 'Success') {
+                    
+                }else{
+                    console.log(value.Message);
+                }
+            });
+        }
+        $scope.setMoreActionId = function(moreId, group){
+            $scope.forMoreActions = {
+                id: moreId,
+                group: group
+            };
+        }
+        $scope.isShowLookup = 0;
+        $scope.showLookup = function(isShow){
+            $scope.isShowLookup = isShow;
+        }
+        $scope.hideLookup = function(isShow, user, objType){
+            $scope.isShowLookup = isShow;
+            $scope.task.selectedUsers = user;
+            if(objType == 'task'){
+                $scope.task.selectedUsers = user;
+                $scope.taskLookup = user.FirstName?user.FirstName + " " + user.LastName:user.LastName;
+            }else if(objType == 'event'){
+                $scope.event.selectedUsers = user;
+                $scope.eventLookup = user.FirstName?user.FirstName + " " + user.LastName:user.LastName;
+            }
+        }
+        $scope.cleanLookup = function(objType){
+            $scope.isShowLookup = 1;
+            if(objType == 'task'){
+                $scope.taskLookup = "";
+            }else if(objType == 'event'){
+                $scope.eventLookup = "";
+            }
+        }
+        // $('#datetimepicker').datetimepicker({
+        //  viewMode: 'years',
+  //               format: 'DD/MM/YYYY'
+        // });
+    });
+})(jQuery);
+</script>
+</apex:page>

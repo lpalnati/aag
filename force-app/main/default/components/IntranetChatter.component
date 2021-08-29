@@ -1,0 +1,31 @@
+<apex:component >
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet chatter" type="String" />
+<style>
+		#publishersharebutton{
+			background-color: #3079ED !important;
+			background-image: -ms-linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+			background-image: -moz-linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+			background-image: -webkit-linear-gradient(top, #3079ED 0,#3079ED 100%) !important;
+			background-image: linear-gradient(top,#3079ED 0,#3079ED 100%) !important;
+		}
+		.publishercontainer input[type="text"], .publishercontainer .panel textarea {
+			padding:0px !important;
+		}
+		.fileFormInputElement {
+			width: 155px !important;
+			margin-right: 260px !important;
+		}
+		.publisherpollchoiceinput {
+			width: 240px !important;
+			margin-right: 260px !important;
+		}
+</style>
+<!-- chatter card -->
+<div class="card cardPhone">
+	<h2 style="display: block;">Chatter</h2>
+	<div class="cardContent" style="padding:5px; font-size:12px;height: 443px;overflow-y: auto;position:relative;overflow-x: auto;">
+		<chatter:newsfeed > </chatter:newsfeed>	
+	</div>
+</div>
+<!-- end of chatter card -->
+</apex:component>

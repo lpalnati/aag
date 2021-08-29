@@ -1,0 +1,34 @@
+<apex:component controller="IntranetResourcesComponentController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet resources" type="String" assignTo="{!lib}"/>
+<div class="sideWrapper leftSideWrapper">
+    <div class="side">
+        <h2 style="display:block;">Resources</h2>
+            <apex:repeat value="{!libraries}" var="lib"> 
+                <div class="dropdownMenu collapsed">
+                    <a href="javascript:void(0);"><span>{!lib}</span></a>
+                    <ul>
+                        <apex:repeat value="{!libraries[lib]}" var="resource">  
+                                <script>
+                                    var endDate = new Date("{!resource.End_date__c}");
+                                    var curDate = new Date();
+                                    if (endDate >= curDate) {
+                                        document.write("<li>");
+                                        document.write("<p style='line-height: 14px;padding-left: 0px'>");  
+                                        if("{!resource.FileType}" == 'LINK') {
+                                            document.write("<a id='docLink{!resource.Id}' href='{!resource.ContentUrl}' target='_blank'>{!resource.Title}</a>");
+                                        }else if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)){               
+                                            document.write("<a id='docLink{!resource.Id}' href='/sfc/servlet.shepherd/version/download/{!resource.Id}?asPdf=false&operationContext=CHATTER' target='_blank'>{!resource.Title}</a>");
+                                        }else {  
+                                            document.write("<a id='docLink{!resource.Id}' href='/{!resource.ContentDocumentId}' target='_blank'>{!resource.Title}</a>");   
+                                        }
+                                        document.write("</p>");
+                                        document.write("</li>");
+                                    }
+                                </script>
+                        </apex:repeat>
+                     </ul>
+                </div>
+            </apex:repeat>   
+    </div>
+</div>
+</apex:component>

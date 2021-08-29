@@ -1,0 +1,17 @@
+<apex:component controller="IntranetFooterController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying footer" type="String"/>
+ <div class="footer">
+		<div class="inner">
+			<span class="copyright">{!companyName}</span> 
+			<div class="connect">
+				<span>Connect with us:</span>
+				<a href="{!facebookLink}" class="facebook" target="_blank"></a>
+				<a href="{!twitterLink}" class="twitter" target="_blank"></a>
+				<a href="{!linkedinLink}" class="linkedin" target="_blank"></a>
+				<a href="{!pinterestLink}" class="pinterest" target="_blank"></a>
+				<a href="{!instgramLink}" class="instgram" target="_blank"></a>
+				<a href="{!youtubeLink}" class="youtube" target="_blank"></a>
+			</div>
+		</div>
+	</div>
+</apex:component>

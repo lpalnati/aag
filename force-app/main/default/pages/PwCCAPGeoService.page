@@ -1,0 +1,434 @@
+<apex:page controller="PwCCAPGeoServiceCtrl" showHeader="false" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+    <!-- Bootstrap SF1 -->
+    <apex:stylesheet value="{!URLFOR($Resource.SAMS, 'SAMS/css/bootstrap.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.SAMS, 'SAMS/js/jquery.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.SAMS, 'SAMS/js/bootstrap.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.PwCCAP, 'js/angular.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.PwCCAP, 'js/angular-sanitize.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.PwCCAPGoogleResource, 'PwCCAPGoogleResource/angular-bootstrap-multiselect.js')}" />
+	<!-- Bootstrap Multiselect -->
+	<apex:includeScript value="{!URLFOR($Resource.SAMS, 'SAMS/js/bootstrap-multiselect.js')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.SAMS, 'SAMS/css/bootstrap-multiselect.css')}" />
+	<!-- Google GEO -->
+	<script src="https://maps.googleapis.com/maps/api/js"></script>
+	<!-- Common CSS -->
+	<apex:include pageName="PwCCAPCommonCSS" />
+	<style type="text/css">
+		.logoImg{
+			width: 150px;
+		}
+		.logoTitle {
+			line-height: 3;
+			font-size: 36px;
+		}
+		.btn-group button {
+			min-width: 200px;
+		}
+		.multiselect-container>li {
+			min-width: 200px;
+		}
+		.btn .caret {
+			margin-left: 30px;
+		}
+		.rowGEO {
+			padding-top: 20px;
+		}
+		input[type=checkbox] {
+			height: 15px;
+			width: 15px;
+		}
+		.container-fluid {
+			height: 100%;
+		}
+		.range {
+			border: 1px solid #000;
+			margin: 15px;
+			padding: 30px 0;
+			height: calc(100% - 30px);
+		}
+		.btn-group {
+			width: 40% !important;
+		}
+		.logtitle {
+			width: calc(100% + 15px);
+			font-size: 18px;
+			padding-left: 20px;
+		}
+		table {
+			width: calc(100% + 15px);
+		}
+		th {
+			background-color: #3F3F40;
+			color: #FFFFFF;
+			text-align:center;
+		}
+		tr:nth-child(odd){
+			background-color: #F7F6F6;
+		}
+		tr td {
+			padding-left: 5px;
+		}
+	</style>
+	<head>
+		<title>GEO Service</title>
+	</head>
+	<body ng-app="geoService">
+		<div class="container-fluid">
+			<div class="range" ng-controller="initCtrl">
+				<div class="row">
+					<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+					<div class="col-xs-2 col-sm-2 col-md-2 col-lg-2">
+						<img class="logoImg" src="{!URLFOR($Resource.PwCCAP,'img/PwC_Logo.png')}" />
+					</div>
+					<div class="col-xs-9 col-sm-9 col-md-9 col-lg-9">
+						<label class="logoTitle">{{vm.TitleMessage}}</label>
+					</div>
+				</div>
+				<div class="row rowGEO">
+					<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+					<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
+						<label>{{vm.SearchMessage}}</label>
+					</div>
+					<div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+						<!-- <select id="objects" multiple="multiple" ng-model="vm.objSelects" ng-options="o.Object_Display_Name__c for o in vm.objects" required="true" > 
+	                	</select> -->
+	                	<multiselect ng-model="vm.multiobjSelects" options="vm.multiObjects" show-select-all="true" display-prop="Object_Display_Name__c" id-prop="Id" ng-disabled="vm.runed"></multiselect>
+					</div>
+				</div>
+				<div class="row rowGEO">
+					<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+					<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
+						<label>{{vm.fullRunMessage}}</label>
+					</div>
+					<div class="col-xs-8 col-sm-8 col-md-9 col-lg-9">
+						<input type="checkbox" class="checkboxCSS" ng-model="vm.fullRun" ng-disabled="vm.runed"></input>
+					</div>
+				</div>
+				<div class="row rowGEO">
+					<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+					<div class="col-xs-11 col-sm-11 col-md-11 col-lg-11">
+						<input id="btnBack" type="button" value="{{vm.back}}" class="btn_org" ng-click="fn.geoServieBack()"/>
+					 	<input id="btnGo" type="button" value="{{vm.go}}" class="btn_org" ng-click="fn.geoServieRun()" ng-disabled="vm.runed"/>
+                		<input id="btnStop" type="button" value="{{vm.stop}}" class="btn_org" ng-click="fn.geoServiceStop()"/>
+                		<input id="btnBatch" type="button" value="{{vm.batch}}" class="btn_org" ng-click="fn.geoBatchRun()" ng-disabled="vm.runed"/>
+					</div>
+				</div>
+				<hr/>
+				<div class="row rowGEO">
+					<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+					<div class="col-xs-11 col-sm-11 col-md-11 col-lg-11">
+		                <div id="msg-status" style="font-weight:bold;">
+		                	{{ vm.msgStatus}}
+		                </div>
+		                <div id="msg-detail" ng-bind-html="fn.htmlMsgDetails()">
+		                </div>
+					</div>
+	            </div>
+	            <div class="row rowGEO" ng-if="vm.searched" style="height: calc(100% - 400px);">
+	            	<div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+					</div>
+	            	<div class="col-xs-10 col-sm-10 col-md-10 col-lg-10" style="height:100%; width:80%;overflow-y:auto;">
+	            		<div ng-repeat="searchResult in vm.searchResults" style="width:100%;">
+		            		<div class="bgclr_org clr_F logtitle">{{searchResult.DisplayName}}</div>
+			            	<table id="records" border="0" cellpadding="0" cellspacing="0">
+			            		<thead>
+			            			<th width="5%">SNo</th>
+			            			<th width="20%">Name</th>
+			            			<th width="15%">Lat</th>
+			            			<th width="15%">Lng</th>
+			            			<th>Service Status</th>
+			            		</thead>
+			            		<tbody>
+				            		<tr ng-repeat="r in searchResult.Records">
+				            			<td>{{$index + 1}}</td>
+				            			<td>
+				            				<a ng-href="/{{r.Id}}" target="_blank">
+				            				{{r.Name}}
+				            				</a>
+			            				</td>
+				            			<td>{{r.Lat}}</td>
+				            			<td>{{r.Lng}}</td>
+				            			<td>{{r.status}}</td>
+				            		</tr>
+			            		</tbody>
+			            	</table>
+			            </div>
+		            </div>
+		        </div>
+			</div>
+		</div>
+	</body>
+	<script>
+		Visualforce.remoting.timeout = 120000; // Set timeout at page level
+		var j$= jQuery.noConflict();
+		//Global Parameter
+		var global_titleMessage = 'GEO Service';
+		var global_searchMessage = 'Select Object to run job';
+		var global_fullRunMessage = 'Run All Records';
+		var global_back = 'Go Back';
+		var global_go = 'Run GEO Service';
+		var global_stop = 'Stop GEO Service';
+		var global_batch = 'Run GEO Batch Job';
+		var global_error = 'Error occur,details below';
+		var global_SuccessBatch = 'Batch Job is running';
+		var global_runing = 'Geocoding...please wait';
+		var global_runed = 'There is no records pending geocoding.';
+		var global_stopped = 'Geo Service is stopped manually.';
+		var global_finished = 'All of records in every objects have been geocoded.';
+		var global_limit = 'Geo Service is stopped because Google API limit is hit.';
+
+		var totalCount,totalProcessed,totalFailed,stopFlag,prevGeoRecord,searchTmp,totalIndex;
+
+		angular.module('geoService',['btorfs.multiselect','ngSanitize']).controller('initCtrl', ['$scope','$q','$sce','$timeout', function($scope, $q, $sce, $timeout){
+			var self = this;
+			var deferred = $q.defer();
+
+			var vm = $scope.vm = {};
+			vm.TitleMessage = global_titleMessage;
+			vm.SearchMessage = global_searchMessage;
+			vm.fullRunMessage = global_fullRunMessage;
+			vm.back = global_back;
+			vm.go = global_go;
+			vm.stop = global_stop;
+			vm.batch = global_batch;
+			//vm.objSelects = [];
+			//vm.objects = [];
+			vm.fullRun = true;
+			vm.multiObjects = [];
+			vm.multiobjSelects = [];
+
+			vm.msgStatus = '';
+			vm.msgDetails = '';
+
+			vm.searched = false;
+			vm.searchResults = [];
+			vm.runed = false;
+
+			Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.PwCCAPGeoServiceCtrl.getObjects}',
+                function(result,event){
+                    if( event.statusCode == 200 && result.Message == 'Success') {
+          				$scope.vm.multiObjects = function() {
+				            return $q(function (resolve, reject) {
+				                $timeout(function () {
+				                    resolve(result.ObjLst);
+				                    vm.multiObjects = result.ObjLst;
+				                }, 0);
+				            });
+				        };
+          			} else {
+          				vm.msgStatus = global_error;
+						vm.msgDetails = result.Message;
+          			}
+                },
+                {escape: false}
+            );
+
+
+			// Visualforce.remoting.Manager.invokeAction(
+   //              '{!$RemoteAction.PwCCAPGeoServiceCtrl.getObjects}',
+   //              function(result,event){
+   //                  if( event.statusCode == 200 && result.Message == 'Success') {
+   //        				deferred.resolve(result);
+   //        			} else {
+   //        				deferred.reject(result);
+   //        			}
+                	
+   //              },
+   //              {escape: false}
+   //          );
+   //          var pro = deferred.promise;
+   //          pro.then(function(result){
+   //          	vm.objects = result.ObjLst;
+   //          	$timeout(function(){
+	  // 				j$('#objects').multiselect({
+			// 			includeSelectAllOption: true
+			// 		});
+   //          	}, 0);
+   //          },function(result){
+   //          	vm.msgStatus = global_error;
+			// 	vm.msgDetails = result.Message;
+   //          });
+
+            //method
+           	var fn = $scope.fn = {};
+           	fn.htmlMsgDetails = function() {
+           		return $sce.trustAsHtml(vm.msgDetails);
+           	}
+
+           	fn.geoServieBack = function() {
+           		window.location.href = window.location.origin;
+           	}
+
+           	fn.geoServieRun = function() {
+           		self.geofn.initGeoService();
+				vm.searched = true;
+	            vm.searchResults = [];
+	            vm.msgStatus = global_runing;
+	            vm.runed = true;
+	            vm.msgDetails = '';
+	            totalIndex = 0;
+	            if(vm.multiobjSelects.length > 0) {
+		            self.geofn.serviceCall();
+	            } else {
+	            	vm.msgStatus = global_finished;
+	            	vm.runed = false;
+	            }
+           	}
+
+           	fn.geoServiceStop = function() {
+           		stopFlag = true;
+           		vm.runed = false;
+           	}
+
+           	fn.geoBatchRun = function() {
+           		Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.PwCCAPGeoServiceCtrl.runBatchJob}',
+	                function(result,event){
+	                    if( event.statusCode == 200 && result.Message == 'Success') {
+              				vm.msgStatus = global_SuccessBatch;
+              				vm.msgDetails = '*** job is running';
+              			} else {
+              				vm.msgStatus = global_error;
+              				vm.msgDetails = result.Message;
+              			}
+	                },
+	                {escape: false}
+	            );
+           	}
+
+           	self.geofn = (function() {
+           		var r = {};
+           		r.className = '';
+           		r.fullRun = vm.fullRun;
+
+				r.initGeoService = function initGeoService() {
+					totalCount = 0;
+		            totalProcessed = 0;
+		            totalFailed = 0;    
+		            stopFlag = false;
+		            prevGeoRecord = null;   
+		            searchTmp = {};
+				}
+
+				r.serviceCall = function() {
+		       		Visualforce.remoting.Manager.invokeAction(
+			                '{!$RemoteAction.PwCCAPGeoServiceCtrl.getGeoRecordCount}',
+			                vm.multiobjSelects[totalIndex].Object_Class_Name__c, vm.fullRun,
+			                function(result,event){
+			                    if( event.statusCode == 200 && result.Message == 'Success') {
+		              				if(parseInt(result.Obj) > 0) {
+		              					totalCount = parseInt(result.Obj);
+		              					vm.msgDetails += 'Calculating geolocation complete for '+ totalProcessed +' out of '+ totalCount +' of records in '+ vm.multiobjSelects[totalIndex].Object_Display_Name__c +'<br/>';
+		              					self.geofn.className = vm.multiobjSelects[totalIndex].Object_Class_Name__c;
+		              					searchTmp.DisplayName = vm.multiobjSelects[totalIndex].Object_Display_Name__c;
+		              					searchTmp.Records = [];
+		              					vm.searchResults.push(searchTmp);
+		              					queryNextRecord(null);
+		              				} else {
+		              					vm.msgStatus = global_runed;
+		              				}
+		              			} else {
+		              				vm.msgStatus = global_error;
+		              				vm.msgDetails = result.Message;
+		              			}
+			                },
+			                {escape: false}
+			            );
+	           	}
+
+				queryNextRecord = function queryNextRecord(geoRecord) {
+					if(!stopFlag){
+		                Visualforce.remoting.Manager.invokeAction(
+		                    '{!$RemoteAction.PwCCAPGeoServiceCtrl.getGeoRecord}',
+		                    r.className, r.fullRun, geoRecord,
+	                    		function(result, event){
+			                        if (event.statusCode == 200 && result.Message == 'Success') {
+			                        	if(result.UpdateMessage == 'Success') {
+			                        		if(prevGeoRecord) {//Second return will log first record result
+				                                logRecord();
+				                            }
+				                            if(result.Obj) {
+				                                processRecord(result);
+				                            } else{
+			                                    r.initGeoService();
+			                                    if(totalIndex == vm.multiobjSelects.length-1) {
+			                                    	vm.msgStatus = global_finished;
+			                                    	vm.runed = false;
+			                                    } else {
+			                                    	totalIndex++;
+			                                    	r.serviceCall();
+			                                    }
+				                            }  
+			                        	}else {
+			                        		vm.msgStatus = global_error;
+              								vm.msgDetails = result.UpdateMessage;
+			                        	}           
+			                        } else {
+			                            vm.msgStatus = global_error;
+              							vm.msgDetails = result.Message;
+			                        }
+			                    }, 
+			                    {escape: true}
+		                	);
+		            }else{
+		                vm.msgStatus = global_stopped;
+		            }   
+				}
+
+				processRecord = function processRecord(result){
+					prevGeoRecord = {};
+            		var geocoder = new google.maps.Geocoder();
+		            var geocoderRequest = {
+		                address: result.Address
+		            }
+            
+           			geocoder.geocode(geocoderRequest, function(results, status){
+	                	totalProcessed++;
+	                	prevGeoRecord.obj = result.Obj;                                  
+	                
+	                	//stop immediately if query limit is hit
+	                	if(status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
+	                    	totalFailed++;      
+	                    	vm.msgStatus = global_limit;
+	               		}else {
+	                    	if(status == google.maps.GeocoderStatus.OK) {
+	                        var lat = results[0].geometry.location.lat();
+	                        var lng = results[0].geometry.location.lng();
+	                        	prevGeoRecord.Message = 'Success';
+	                        	prevGeoRecord.Lat = lat;
+	                        	prevGeoRecord.Lng = lng;
+		                    }else{
+		                        prevGeoRecord.Message = status;//Geo Failed pass to backend
+	                    	}
+	                    	setTimeout(function(){
+	                    		queryNextRecord(prevGeoRecord);
+	                    	},2000);
+	                	}
+	                });
+                }
+
+                logRecord = function logRecord(result){
+		             var tmp = {};
+		             tmp.Id = prevGeoRecord.obj.Id;
+		             tmp.Name = prevGeoRecord.obj.Name;
+		             tmp.Lat = prevGeoRecord.Lat;
+		             tmp.Lng = prevGeoRecord.Lng;
+		             tmp.status = prevGeoRecord.Message;
+		             searchTmp.Records.push(tmp);
+		             var str1 = ' complete for ';
+		             var str2 = ' out of ';
+		             var start1 = vm.msgDetails.lastIndexOf(str1);
+		             var start2 = vm.msgDetails.lastIndexOf(str2);
+		             vm.msgDetails = vm.msgDetails.substring(0, start1+str1.length) + totalProcessed + vm.msgDetails.substring(start2);
+		        }
+				return r;
+			})();
+		}]);
+	</script>
+</apex:page>

@@ -1,0 +1,117 @@
+<apex:page id="page" sidebar="false" showheader="false" controller="IntranetRequiredReadingsAcknowledge">
+    <head>
+        <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+        <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+        <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+        <link rel="Stylesheet" type="text/css" href="{!$Resource.ImageSlider}/ImageSlider/css/flexslider.css"></link>
+        <script type="text/javascript" src="{!$Resource.ImageSlider}/ImageSlider/js/jquery.flexslider.js"></script> 
+        <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+        <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+        <meta name="viewport" content="width=320, user-scalable=no"/>
+        <script>
+                    $(document).ready(function(){
+                        if("{!contentVer.FileType}" == 'LINK') {
+                            $("#docLink").attr("href","{!contentVer.ContentUrl}");
+                        }else if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)){
+                            var link = "/sfc/servlet.shepherd/version/download/{!contentVer.Id}?asPdf=false&amp;operationContext=CHATTER";
+                            $("#docLink").attr("href",link);
+                        }else {
+                            var link = "/{!contentVer.ContentDocumentId}";
+                            $("#docLink").attr("href",link);
+                      }  
+                    });
+                </script>
+   <style type="text/css">
+        .odd { 
+            background-color: #FCF7F7;
+            padding: 7px 0;
+            line-height: 16px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .even {
+            background-color: #E3DCDB;
+            padding: 7px 0;
+            line-height: 16px;
+            font-size: 13px;
+            font-weight: normal;
+        }
+        .highlighted{
+        background-color: #FFFF99;
+        }
+        .error{
+        background-color: #FF3B3B;
+        }
+        .nav{
+            padding: 7px 0;
+            line-height: 16px;
+            font-size: 13px;
+            font-weight: normal;
+            float:right;
+            
+        }
+        ul li, ol li {
+          margin-left: 0px;
+          padding-left: 0;
+       }
+    </style>        
+    </head>
+    
+    <body class="homePage">
+
+    <div class="wrapper">
+        <c:IntranetHeader />
+        <div class="content">
+            <c:IntranetMenu />
+            <apex:pageMessages id="error"/>
+            <br/><br/>
+            <div style="background-color:#fff;padding: 25px;">
+                <div>
+                    <a id="docLink" target="_blank" style="color: #015BA7;background:#fff;">{!contentVer.title}</a>
+                </div>
+                    <apex:outputPanel style="margin-top:20px;" layout="block" rendered="{!!ISNULL(contentVer.description)}"> 
+                   <apex:outputLabel value="{!contentVer.description}" />
+                  </apex:outputPanel>
+                <div>
+                  <apex:form >
+                      <div style="margin-top:25px;">
+                        <label style="float:left;margin-top:3%;margin-right: 1%;width:10%">Comments </label>
+                        <apex:InputField value="{!requiredReadingRecord.Comments__c}" style="height:80px;width: 86%;"/>
+                      </div>
+                      <div style="margin-top: 20px;">   
+                        <apex:inputCheckbox value="{!isMarkComplete}"/> &nbsp;&nbsp; By clicking, I acknowledge that I have received, read, and understand the attached policy.  I agree to abide by and be bound by the rules, provisions and standards set forth in this policy. I further acknowledge that the Company reserves the right to revise, delete and add to the provisions of the policy at any time.
+                      </div>
+
+                      <div style="margin-top:25px;">
+                        <label style="float:left;margin-right: 1%;width:10%">Additional Notes </label>
+                        <apex:outputField value="{!contentVer.Additional_Notes__c}" style="height:80px;width: 86%;"/>
+                      </div>
+                      
+                      <div class="clear"/>
+                      <div align="center" style="width:100%;margin-top: 30px;"> 
+                        <a href="#" onclick="complete(); return false;" class="grayBtn"><span><span>Complete</span></span></a>
+                        <a href="#" onclick="cancel(); return false;" class="grayBtn"><span><span>Cancel</span></span></a>
+                            <apex:actionFunction name="complete" action="{!markComplete}"/> 
+                            <apex:actionFunction name="cancel" action="{!cancelAction}"/>
+                    </div>
+                  </apex:form> 
+                </div>
+            </div>
+            <br/>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <!-- end of wrapper -->
+    <c:IntranetFooter /> 
+</body>
+<script>
+$(document).ready(function(){
+    $("#menuDiv ul:first > li:first").removeClass("active");
+  if({!isMenuAndSearchBarShow} == false) {
+        $('.searchSite').css('display','none');
+        $('.menuWrapper').css('display','none');
+        $('.logoWrapper a').attr('href','javascript:void(0);');
+    }
+});
+</script>
+</apex:page>

@@ -1,0 +1,126 @@
+<apex:page controller="ChatterLiveController" sidebar="false" id="page">
+    <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <style>
+    a{font-weight: bold;}
+        .s { background:#de9a44; margin:0px; width:100%;  float:left; display:none; }
+        .c1 { -moz-border-radius-topleft:8px; 
+        -moz-border-radius-topright:8px; 
+        background:url('{!$Resource.ChatterLiveHeader}') top;
+        background-repeat: repeat-x;
+        color: black; 
+        font-size: 14px; 
+        padding-left: 140px; 
+        padding-right: 5px; 
+        margin-top: 2px; 
+        padding-top: 5px; 
+        padding-bottom: 2px; 
+        margin-bottom: 0px;   
+        border-right: 1px solid #ccc;
+        border-left: 1px solid #ccc;
+        }
+        .e {padding-top: 5px;}
+        .a { display:none;}
+        .d { color: gray; font-size: 12px;}
+    </style>
+    <script>
+        var cnt = 0;
+        
+        function addUserPost(txt){
+            if(txt != 'skip') {
+                eval(txt);
+                cnt = cnt + 1;
+                var msg = '';
+                if(feed.fromId != feed.toId){
+                    msg = '<a href="' + feed.fromId + '">' + feed.fromName + '</a> to <a href="' + feed.toId + '">' + feed.toName + '</a> <br />' + feed.message;
+                }
+                else {
+                    msg = '<a href="' + feed.fromId + '">' + feed.fromName + '</a> <br />' + feed.message;
+                }
+                var ni = document.getElementById('myDiv');
+                var current = ni.innerHTML;
+                var divIdName = 'my'+cnt+'Div';
+                var demo = '<div id="' + divIdName + '" class="e a"><span class="b">' + msg + '</span><br /><br /></div>';
+                ni.innerHTML = demo + current;
+                $("#" + divIdName).slideDown("slow");
+            }
+        }
+        
+        function addGroupPost(txt){
+            if(txt != 'skip') {
+                eval(txt);
+                cnt = cnt + 1;
+                var msg = '<a href="' + feed.fromId + '">' + feed.fromName + '</a> in <a href="' + feed.toId + '">' + feed.toName + '</a> <br />' + feed.message;
+                var ni = document.getElementById('myDivG');
+                var current = ni.innerHTML;
+                var divIdName = 'my'+cnt+'DivG';
+                var demo = '<div id="' + divIdName + '" class="e a"><span class="b">' + msg + '</span><br /><br /></div>';
+                ni.innerHTML = demo + current;
+                $("#" + divIdName).slideDown("slow");
+            }
+        }
+    </script>
+    </head>
+        
+        <br />
+        <TABLE>
+        <CAPTION><h1 style="font-size: 36px; margin-top: 14px;">Chatter Live</h1><br /><br /><i>This page will automatically update with recent chatter posts.</i></CAPTION>
+        <TR valign="top">
+        <TD><div style="text-align: center; width: 500px; margin-top: 10px; font-size:20px;;">Recent User Posts</div></TD>
+        <TD><div style="text-align: center; width: 500px; margin-top: 10px; font-size:20px;;">Recent Group Posts</div></TD>
+        </TR>
+<TR valign="top">
+  <TD><!-- Users -->
+  <div id="myDiv" class="c1" style="width: 400px; margin-left: 2px; margin-right:2px;">
+        <apex:repeat var="feed" value="{!FeedUpdates}">
+            <div class="e">
+            
+            <span class="b">
+            <apex:outputText rendered="{!feed.isFeedPost}">
+            <apex:outputLink value="{!feed.fromLink}"><apex:outputText value="{!feed.fromName}"/></apex:outputLink> to&nbsp;<apex:outputLink value="{!feed.toLink}"><apex:outputText value="{!feed.toName}"/></apex:outputLink>
+            <br />
+            <apex:outputText value="{!feed.message}"/>
+            </apex:outputText>
+            <apex:outputText rendered="{!feed.isStatusUpdate}">
+            <apex:outputLink value="{!feed.fromLink}"><apex:outputText value="{!feed.fromName}"/></apex:outputLink>
+            <br />
+            <apex:outputText value="{!feed.message}"/>
+            </apex:outputText>
+            </span>
+            
+            <br /><br />
+            </div>
+            
+        </apex:repeat> <br /><br /><br /><br /><br /><br /><br /><br />
+  </div>
+  
+  </TD>
+  <TD> <!-- Groups-->
+  <div id="myDivG" class="c1" style="width: 400px; margin-left: 2px; margin-right:2px;">
+        <apex:repeat var="feed" value="{!GroupUpdates}">
+            <div class="e">
+            <span class="b">
+            
+            <apex:outputLink value="{!feed.fromLink}"><apex:outputText value="{!feed.fromName}"/></apex:outputLink> in&nbsp;<apex:outputLink value="{!feed.toLink}"><apex:outputText value="{!feed.toName}"/></apex:outputLink>
+            <br />
+            <apex:outputText value="{!feed.message}"/>
+            
+            
+            </span>
+                <br /><br />
+            </div>
+            
+        </apex:repeat> <br /><br /><br /><br /><br /><br /><br /><br />
+  </div>
+  </TD>
+</TR>
+</TABLE>
+
+
+<apex:form id="form">
+<apex:outputText value="{!lastUserUpdate}" id="user" escape="true" style="display:none;"/>
+<apex:actionPoller rerender="user" interval="35" oncomplete="addUserPost(document.getElementById('page:form:user').innerHTML);"/>
+<apex:outputText value="{!lastGroupUpdate}" id="group" escape="true" style="display:none;"/>
+<apex:actionPoller rerender="group" interval="51" oncomplete="addGroupPost(document.getElementById('page:form:group').innerHTML);"/>
+</apex:form>
+</apex:page>

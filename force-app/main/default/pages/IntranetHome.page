@@ -1,0 +1,41 @@
+<apex:page id="page" sidebar="false" showheader="{!NULLVALUE($CurrentPage.parameters.header, 'false')}" controller="IntranetHomeController">
+ <apex:iframe height="1" width="1" src="{!$CurrentPage.URL}&header=true" />
+<head>
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/homebanner.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.ImageSlider}/ImageSlider/css/flexslider.css"></link>
+    <script type="text/javascript" src="{!$Resource.ImageSlider}/ImageSlider/js/jquery.flexslider.js"></script> 
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+        <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+        <meta name="viewport" content="width=320,user-scalable=no"/>
+</head>
+    
+<body class="homePage">
+   <div class="wrapper">
+      <c:IntranetHeader />
+      <div class="content">
+         <c:IntranetMenu />
+         <div class="carousel" style="margin-top:5px;">
+             <c:IntranetBanner pageId="{!pageName}"/>
+         </div>
+         <c:IntranetLinks pageId="{!pageName}"/>
+         <c:IntranetChatter />
+         <c:IntranetNewsFeed pageId="{!pageName}"/>  
+         <c:IntranetPerformance />
+         <div class="clear"></div>
+      </div>
+   </div>
+   <!-- end of wrapper -->
+   <c:IntranetFooter /> 
+</body>
+<script>
+$(document).ready(function(){
+    if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) {
+        $('.defaultBannerImage').css('height','160px');
+        $('.defaultBannerImage').css('width','300px');
+    }
+});
+</script>
+ </apex:page>

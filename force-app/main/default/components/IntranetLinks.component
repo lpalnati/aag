@@ -1,0 +1,38 @@
+<apex:component controller="IntranetLinkComponentController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet links" type="String" assignTo="{!pageId}"/>
+<style>
+	.linkLabel{
+		width:140px;font-size: 100%;vertical-align: baseline;	font: inherit;
+	}
+	.quickLinks li a:hover span{
+		color: #CC0000;
+	}
+</style>
+<ul class="quickLinks">
+	<apex:repeat value="{!intranetList}" var="intranetLink">
+		<li>
+	  	<a href="{!intranetLink.URL__c}" target="{!intranetLink.Target__c}">
+			  <apex:image value="/servlet/servlet.FileDownload?file={!intranetLink.Attachments[0].Id}&otherId=" height="51px" width="51px" rendered="{!IF(intranetLink.Attachments.size > 0, true, false)}"/><br/>
+	  			 <span>{!intranetLink.Name}</span>
+	    </a>
+    </li>
+  </apex:repeat>
+</ul>
+<script>
+	$(document).ready(function(){
+		if(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) {
+			if(parseInt('{!intranetList.size}') <= 3){
+				$('.quickLinks').css('height', '90px');
+				var listWidth = ($('.quickLinks').width() - 30)/'{!intranetList.size}';
+				$('.quickLinks li').css('width', listWidth);
+			}else{
+				$('.quickLinks li').css('width', '99px');
+				$('.quickLinks li').css('height', '88px');
+			}
+		}else{
+			var listWidth = ($('.quickLinks').width() - 10)/'{!intranetList.size}';
+			$('.quickLinks li').css('width', listWidth);
+		}	
+	});
+</script>
+</apex:component>

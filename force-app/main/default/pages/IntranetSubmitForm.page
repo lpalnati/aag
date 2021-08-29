@@ -1,0 +1,98 @@
+<apex:page controller="IntranetSubmitFormController" sidebar="false" showheader="false" id="pg">
+<head>
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+    <style>
+      ul li, ol li {
+         margin-left: 0px;
+         padding-left: 0;
+      }
+      .dateFormat{
+        display:none;
+      }
+      html .cke_skin_sfdc{
+        float:left;
+      }
+    </style>
+     <script>
+        function cancel() {
+            window.location = '/apex/IntranetFormTypes';
+        }
+        function validateData(action) {
+        	if($('.reviewerList').val() == '') {
+        		$('.listError').css('display','block');
+        	}else{
+        		if(action == 1)
+        			Save();
+        		else
+        		 SaveAndSubmit();
+        	}
+        }
+    </script>
+</head>
+<body>
+<div class="wrapper">
+    <c:IntranetHeader />
+    <div class="content">
+    <c:IntranetMenu />
+    <apex:form id="frm">
+    <p class="contentTitle">{!IntranetFormType.Name}</p>
+        <div class="resultBlock">
+            <h3 style="display: block;">
+            	<div style="float:left;">Form Information</div>
+            	<div style="float:left;margin-top:2px;" class="topBtn" align="center">
+		              <a href="javascript:void(0);" onclick="validateData(1);" class="grayBtn" style="float:none;"><span><span>Save</span></span></a>
+		              <a href="javascript:void(0);" onclick="validateData(2);" class="grayBtn" style="float:none;"><span><span>Submit</span></span></a>
+		              <a href="javascript:void(0);" onclick="cancel();" class="grayBtn" style="float:none;"><span><span>Cancel</span></span></a>
+              </div>
+              <div class="clear"></div>
+            </h3>
+            <div class="form">
+       				 <apex:outputPanel rendered="{!AND(reviewerOptions.size > 0)}">
+             		<div class="formLine">
+             		 <label>Select Reviewer</label>
+             		 	<apex:outputPanel styleClass="requiredField" rendered="true"></apex:outputPanel>
+                  <apex:selectList id="rt" value="{!reviewerId}" multiselect="false" size="1" styleClass="text reviewerList" required="true" >
+      							 <apex:selectOptions value="{!reviewerOptions}"/> 
+   							  </apex:selectList>
+   							  <div class="errorMsg listError" style="display:none;"><strong>Error:</strong> You must enter a value</div>
+              	</div>
+               </apex:outputPanel>
+               <apex:repeat value="{!IntranetFormType.IntranetFormListFields__r}" var="f"> 
+               <div class="formLine">
+                 <apex:outputPanel rendered="{!OR(f.Field_API_Name__c == 'flying_from_city_destination_1__c',f.Field_API_Name__c == 'flying_from_city_destination_2__c',f.Field_API_Name__c == 'flying_from_city_destination_3__c')}">
+                 	<label style="padding: 7px;">&nbsp;</label>
+                 	<apex:outputlabel style="padding: 7px;text-align:left;">WHERE ARE YOU FLYING FROM &amp; TO?</apex:outputLabel>
+						 		</apex:outputPanel>	
+                 <label>{!$ObjectType.Intranet_Form__c.fields[f.Field_API_Name__c].label}</label>
+                 <apex:outputPanel styleClass="requiredField" rendered="{!f.Required__c}"></apex:outputPanel>
+                 <apex:inputField value="{!intranetForm[f.Field_API_Name__c]}" styleClass="text" required="{!f.Required__c}" rendered="{!f.Field_API_Name__c != 'team_member_hire_date__c'}"/>
+                 <input type="text" value="{!intranetForm[f.Field_API_Name__c]}" Class="text" disabled="disabled" style="{!If(f.Field_API_Name__c == 'team_member_hire_date__c' ,'display:block;','display:none;')}"/>
+                 <div class="clear"></div>
+               </div>  
+             </apex:repeat>
+             <div align="Center">
+               <a href="javascript:void(0);" onclick="validateData(1);" class="grayBtn" style="float:none;"><span><span>Save</span></span></a>
+               <a href="javascript:void(0);" onclick="validateData(2);" class="grayBtn" style="float:none;"><span><span>Submit</span></span></a>
+               <a href="javascript:void(0);" onclick="cancel();" class="grayBtn" style="float:none;"><span><span>Cancel</span></span></a>
+               <apex:actionFunction name="Save" action="{!Save}"/>
+               <apex:actionFunction name="SaveAndSubmit" action="{!saveAndSubmitForApproval}"/>
+             </div>
+             <div class="clear"></div>
+            </div>
+        </div>
+       </apex:form>
+    </div>
+</div>
+<c:IntranetFooter />    
+</body>
+<script>
+$(document).ready(function () {
+	$("#menuDiv ul:first > li:first").removeClass("active");
+});
+</script>
+</apex:page>

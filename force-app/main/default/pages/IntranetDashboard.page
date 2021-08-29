@@ -1,0 +1,80 @@
+<apex:page controller="IntranetDashboardController" sidebar="false" showheader="false" id="pg">
+    <head>
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+      <style>
+        ul li, ol li {
+           margin-left: 0px;
+           padding-left: 0;
+        }
+      </style>
+  </head>
+<body>
+<div class="wrapper">
+    <c:IntranetHeader />
+    <div class="content">
+    <c:IntranetMenu />
+    <h1>User Dashboard</h1>
+        <apex:pageMessages id="error"/>
+        <div class="resultBlock">
+            <h3 style="display: block;">User's Profile</h3>
+            <apex:form id="frm">
+            <div class="form">
+                <div class="formLine">
+                    <label>First Name:</label>
+                    <apex:inputText value="{!userInformation.FirstName}" styleClass="text" disabled="true"/>
+                    <div class="clear"></div>
+                </div>
+                <div class="formLine">
+                    <label>Last Name:</label>
+                    <apex:inputText value="{!userInformation.LastName}" styleClass="text" disabled="true"/>
+                    <div class="clear"></div>
+                </div>
+                <div class="formLine">
+                    <label>Email:</label>
+                    <apex:inputText value="{!userInformation.Email}" styleClass="text" disabled="true"/>
+                    <div class="clear"></div>
+                </div>
+                <div class="formLine">
+                    <label>Time Zone:</label>
+                    <apex:inputField value="{!userInformation.TimeZoneSidKey}" styleClass="text"/>
+                    <div class="clear"></div>
+                </div>
+                <div class="formLine">
+                    <label>Language:</label>
+                    <apex:inputField value="{!userInformation.LanguageLocaleKey}" styleClass="text"/>
+                    <div class="clear"></div>
+                </div>
+                <div class="formLine">
+                    <label>Phone:</label>
+                    <apex:inputField value="{!userInformation.Phone}" styleClass="text"/>
+                    <div class="clear"></div>
+                </div>
+                <div align="Center">
+                		<a href="javascript:void(0);" onclick="updateUserInformation();" class="grayBtn" style="float:none;"><span><span>Update</span></span></a>
+                		<apex:actionFunction name="updateUserInformation" action="{!updateUserInformation}"/>
+                </div>
+                <div class="clear"></div>
+            </div>
+            </apex:form>
+        </div>
+    </div>
+</div>
+<c:IntranetFooter />
+<script> 
+	$(document).ready(function(){
+		if({!isMenuAndSearchBarShow} == false) {
+			$('.searchSite').css('display','none');
+			$('.menuWrapper').css('display','none');
+			$('h1').css('display','none');
+			$('.logoWrapper a').attr('href','javascript:void(0);');
+		}
+		$("#menuDiv ul:first > li:first").removeClass("active");
+	});
+</script>   
+</body>
+</apex:page>

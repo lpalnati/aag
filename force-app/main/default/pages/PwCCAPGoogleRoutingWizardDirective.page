@@ -1,0 +1,4 @@
+<apex:page cache="true" expires="60" applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardStylesheets="false">
+<script type="text/javascript">
+</script>
+</apex:page>

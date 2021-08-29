@@ -1,0 +1,27 @@
+<apex:page cache="true" expires="60" applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardStylesheets="false">
+<script>
+	routingWizard.services
+	.factory('routingWizardServices',['APIService',function(APIService){
+		var svc = {};
+		svc.getInitialResultWhenPageLoad = function(){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.getInitialResultWhenPageLoad');
+		} 
+		svc.queryData = function( filterLst, l){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.queryData', filterLst, l);
+		}
+		svc.addToMyLocation = function(myLocation){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.addToMyLocation', myLocation);
+		}
+		svc.deleteMyLocation = function(myLocation){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.deleteMyLocation', myLocation);
+		}
+		svc.insertTask = function(sobject){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.insertTask', sobject);
+		}
+		svc.insertEvent = function(eventObj){
+	        return APIService.invokeAction('PwCCAPRoutingWizardCtrl.insertEvent', eventObj);
+		}
+		return svc;
+	}])
+</script>
+</apex:page>

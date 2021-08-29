@@ -1,0 +1,38 @@
+<apex:component controller="IntranetSecuredResourceController">
+<div class="sideWrapper leftSideWrapper">
+	<div class="side">
+		<h2 style="display:block;">Secure Resources</h2>
+	<div class="_io" id="helpCenterRootID">
+	<div class="clearfix _cs">
+   <div class="_142">
+  	<div class="_b_" role="navigation" aria-label="Help Center Sections">
+  		<div class="_c0" id="u_0_5" style="left:0px;">
+  
+  		</div>
+  	</div>
+   </div>
+ 	</div>
+ </div>
+</div>
+</div>
+
+<script>
+	$(document).ready(function(){
+		$("._c0").append('{!ulString}');
+		$('._b_').css('min-height',($('#hc2NavTopUL').height()));
+		var offset = $('._b_').css('width') == '240px' ? 260 :324; 
+		$('._2wx').click(function() {
+			if($(this).parent('li').hasClass('topPage')) {
+				$('._b_').css('min-height',($(this).next('ul').height())); 
+				$(this).next('ul').addClass('_b- _3pf');
+				$("#u_0_5").css({left:$("#u_0_5").css('left')}).animate({"left":(parseInt($('#u_0_5').css('left'))- offset)+"px"}, "slow");  			
+			}
+		});
+		$('._3pe').click(function() {
+			$('._b_').css('min-height',($(this).parents('ul').eq(1).height()));
+			$(this).parent('ul').removeClass('_b- _3pf');
+			$("#u_0_5").css({left:$("#u_0_5").css('left')}).animate({"left":(parseInt($('#u_0_5').css('left')) + offset)+"px"}, "slow");
+		});
+	});
+</script>
+</apex:component>

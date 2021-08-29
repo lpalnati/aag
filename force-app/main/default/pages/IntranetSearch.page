@@ -1,0 +1,591 @@
+<apex:page controller="IntranetSearchController" sidebar="false" showheader="false">
+    <link rel="stylesheet" href="{!$Resource.IntranetDesign}/css/jquery-ui.css" />
+    <script src="{!$Resource.IntranetDesign}/js/jquery.min.js"></script>
+    <script src="{!$Resource.IntranetDesign}/js/jquery-ui.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <script src="{!$Resource.pajinate}"></script>
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+    <style>
+        /* The header text for the search page that currently says 'Search Results' */
+        .searchPageHeader
+        {
+            font-family: Arial,Helvetica,sans-serif;
+            font-size:24px;
+        }
+        
+        .searchAgain {
+            margin: 18px 0 0 0;
+        }
+        .menuWrapper ul li {
+       		margin-left: 0px;
+       		padding-left: 0;
+    		}
+        /* The container for all of the search result categories */
+        .searchResultContainer
+        {
+            width:100%;
+        }
+        
+        /* The container for each search result category, like  'Chatter' or 'People'*/
+        .searchResultCategory
+        {
+            clear:both;
+            width:auto;
+            margin-bottom:10px;
+            padding:10px;
+            background-color: white;
+            border-style: solid;
+            border-width:1px;
+            border-color:#E0E0E0;
+            
+        }
+        
+        /* Header for each search result category, like 'Chatter' or 'People' */
+        .searchCategoryHeader
+        {
+            font-family: Arial,Helvetica,sans-serif;
+            font-size:18px;
+        }
+        
+        /* The list that contains each search result. Results are an unordered list for easy styling and more flexibility since lots of jQuery plugins
+           can do neat things with unordered lists, like making collapsable lists and such */
+        .searchResultList
+        {
+            list-style-type: none;
+            margin: 0px;
+            padding: 1px;
+            font-size:13px;            
+        }
+        
+        /* a single search result item */
+        .searchResultList li
+        {
+            margin-top:10px;
+            margin-left: 0px;
+        }
+        
+        /* the container for search result images if one is provided. Setting width and height helps create consistant style. Can be adjusted if using larger photos */
+        .searchResultPhotoContainer
+        {
+            width: 64px;
+            height:64px;
+            float:left;
+            margin-right:5px;
+            overflow: hidden;
+        }
+        
+        /* equivilent of a horizontal rule for spacing, can be changed to add more space between headers and lists */
+        .searchResultSpacer
+        {
+            width:100%;
+            margin-top:5px;
+            height:2px;
+            background-color:#E0E0E0;
+        }
+        
+        /* utility class for clearing past floated divs. Mostly used for the search result thumbnails lists */
+        .searchResultClear
+        {
+            clear:both;
+        }
+        /* search button */
+        .searchButton {
+                background: url("{!$Resource.IntranetDesign}/i/grayBtn.png") no-repeat scroll 0 0 transparent;
+                    display: inline-block;
+                    height: 27px;
+                    overflow: hidden;
+                    padding-left: 3px;
+                        float: right;
+                        background: url("{!$Resource.IntranetDesign}/i/grayBtn.png") no-repeat scroll 100% -27px transparent;
+                      display: inline-block;
+                    height: 27px;
+                    padding: 0 3px 0 0;
+                        background: url("{!$Resource.IntranetDesign}/i/grayBtn.png") repeat-x scroll 0 -54px transparent;
+                    color: #000000;
+                    display: inline-block;
+                    font-size: 12px;
+                    font-weight: bold;
+                    height: 27px;
+                    line-height: 27px;
+                    padding: 0 10px;
+        }
+        .menu li.lv1 {
+            padding:0px;
+        }
+    </style>
+     <style>
+        .ellipse {
+        float: left;
+        }
+        .page_navigation , .alt_page_navigation {
+        padding-bottom: 0px;
+        }
+      .page_navigation a, .alt_page_navigation a {
+        padding:3px 5px;
+        margin:2px;
+        color:white;
+        text-decoration:none;
+        float: left;
+        font-family: Tahoma;
+        font-size: 12px;
+        background-color:#1797C0;
+        }
+        .active_page {
+        background-color:white !important;
+        color:black !important;
+        }   
+        .content, .alt_content {
+        color: black;
+        width: initial;
+      }
+        .content li, .alt_content li, .content > p {
+        padding: 5px
+      }   
+      .page_navigation {
+        margin:5px;
+      } 
+      .searchResultListItem{
+        margin-right: 10px;
+      }
+    </style>
+    <script>      
+        
+        
+        $(document).ready(function() {  
+          $('.searchBox').sherlock({
+              //should it search and filter as you type, or only after you click a search button. If you 
+              //specify this as false, and do not provide an id for the 'searchButton' param one will be created
+              //it will have the id of the search input with '_submitButton' appended. Ex 'search_submitButton'
+              //it will have the cass class searchButton
+              'activeFilter'  : false,
+              
+              //where should the search result links open? Use any of the standard HTML link targets here
+              'linkTarget'    : '_blank',
+              
+              //where should the search results be written to? If this is left null, or has an invalid value, a results
+              //container will be created with an ID of the search input with '_results' appended. EX 'search_results'. 
+              //it will have the css class 'searchResultContainer'
+              'contentTarget' : null,
+              
+              //the button that triggers searching if not using activeFilter. If none is provided one will be created
+              //with an ID of the search input with '_submitButton' appended. EX 'search_submitButton'.
+              'searchButton': null,
+              
+              //Custom labels for the sObjects found. Simply provide the name of the sObject, including __c for custom objects, and a label
+              //to use for that object. The label will be used as the header for that grouping of search results. Included below is the default mapping
+              //as per the challenge requirments.
+              
+              //interesting side note, you can combine various sObject results into a single category by providing the same label for multiple object types.
+              //an example of this is included below, where accounts, contacts and intranet_articles__c are all grouped together under the header 'articles'
+              'objectLabels'  : {
+                                    'FeedItem' : 'Chatter',
+                                    'ContentVersion' : 'Documents',
+                                    'User' : 'People',
+                                    'Account' : 'Articles',
+                                    'Intranet_Article__c' : 'Articles',
+                                    'Contact' : 'Articles',
+                                    'Intranet_CMS_Page__c' : 'Site Pages'                               
+                               },
+               
+               //limit of how many items per category/sObject type can be found. It would be wise to keep this somewhat low for better performance, 
+               //especially when using the activeFilter param                
+               'categoryLimit': '{!categoryLimit}',    
+               
+               //what object types should be searched by default (aside from Chatter posts, documents and uses)? Invalid entries will be ignored.
+               'defaultSearch': ['Account','Intranet_Article__c','Contact','Intranet_CMS_Page__c'],
+               
+               //function to run after a search has been run and the result table has been drawn.
+               'onComplete' : function(resultsTable){
+                  // console.log(resultsTable);
+               },
+               //size of pagination page for search results.
+               'pageSize' : '{!paginationLimit}'           
+          });
+        });    
+        
+        (function( $ )
+        {
+          $.fn.sherlock = function( options )
+          { 
+            $.fn.sherlock.searchResults = new Object();    
+            // Create some defaults, extending them with any options that were provided
+            var settings = $.extend( {
+              //should it search and filter as you type, or only after you click a search button. If you 
+              //specify this as false, and do not provide an id for the 'searchButton' param one will be created
+              //it will have the id of the search input with '_submitButton' appended. Ex 'search_submitButton'
+              //it will have the cass class searchButton
+              'activeFilter'  : false,
+              
+              //where should the search result links open? Use any of the standard HTML link targets here
+              'linkTarget'    : '_blank',
+              
+              //where should the search results be written to? If this is left null, or has an invalid value, a results
+              //container will be created with an ID of the search input with '_results' appended. EX 'search_results'. 
+              //it will have the css class 'searchResultContainer'
+              'contentTarget' : null,
+              
+              //Custom labels for the sObjects found. Simply provide the name of the sObject, including __c for custom objects, and a label
+              //to use for that object. The label will be used as the header for that grouping of search results. Included below is the default mapping
+              //as per the challenge requirments.
+              'objectLabels'  : {
+                                    'FeedItem' : 'Chatter',
+                                    'ContentVersion' : 'Documents',
+                                    'User' : 'People',
+                                    'Intranet_Article__c' : 'Articles',
+                                    'Intranet_CMS_Page__c' : 'Site Pages'                                                                       
+                               },
+               
+               //limit of how many items per category/sObject type can be found. It would be wise to keep this somewhat low for better performance, 
+               //especially when using the activeFilter param                
+               'categoryLimit' : '{!categoryLimit}',    
+               
+               //what object types should be searched by default (aside from Chatter posts, documents and uses)? Invalid entries will be ignored.
+               'defaultSearch': ['Account','Intranet_Article__c', 'Intranet_CMS_Page__c'],
+               
+               'onComplete' : function(){ },
+               'pageSize' : '{!paginationLimit}'                  
+            }, options);
+        
+            return this.each(function() {        
+              //get a reference to the plugin settings and save this current search input back into the settings
+              $.fn.sherlock.settings = settings;
+              $.fn.sherlock.settings.searchInput = this;
+
+              //if there is no id on this search element, create one.
+              if($(this).attr('id') == null)
+              {
+                  $(this).attr('id','sherlockSearch_'+Math.floor(Math.random()*100001));
+              }
+              
+              //if there is no search button specified or we cannot find a matching search button, and we are not using active filter (meaning we need a search button) create one.
+              if( (settings.searchButton == null || $(settings.searchButton).length == 0) && !settings.activeFilter)
+              {
+                   //create an id for this element
+                   var searchButtonId = $(settings.searchInput).attr('id')+'_submitButton';
+                   
+                   //append element to the DOM
+                   $(settings.searchInput).after('<a class="grayBtn"><span><span><input type="submit" id="'+searchButtonId+'" value="Search Again" class="searchButton"/></span></span></a>');
+                   
+                   //save reference element in the settings
+                   $.fn.sherlock.settings.searchButton = $('#'+searchButtonId)[0];
+              }
+              //hide the search button if there is one, and we are using activeFilter
+              else if( (settings.searchButton != null || $(settings.searchButton).length > 0) && settings.activeFilter)
+              {
+                  $(settings.searchButton).hide();
+              }
+              
+              //if there is no content target specified or we cannot find a matching content target, then create one.
+              if(settings.contentTarget == null || $(settings.contentTarget).length == 0)
+              {
+                  //create an id for this element
+                  var searchResultId = $(settings.searchInput).attr('id')+'_results';
+                  
+                  //append element to the DOM
+                  $(settings.searchInput).parent().after('<div class="searchResultContainer" id="'+searchResultId+'"></div>');
+                  
+                  //save reference element in the settings
+                  $.fn.sherlock.settings.contentTarget = $('#'+searchResultId)[0];
+              }
+              
+              //if we are using active filtering (meaning it searches as you type) then bind the search action to the keyup event. 
+              //otherwise bind search to the search button click.  
+              if(settings.activeFilter)
+              {
+                  $(settings.searchInput).keyup(function(){
+                      $.fn.sherlock.runSearch($(settings.searchInput).val(),function(searchResults){
+                          $.fn.sherlock.drawSearchResultTable(searchResults,settings.onComplete);    
+                      });          
+                  });
+              }
+              else
+              {   
+                    var searchText = getURLParameter("searchString");
+                    if(searchText != '') {
+                        $.fn.sherlock.runSearch(searchText,function(searchResults){
+                          $.fn.sherlock.drawSearchResultTable(searchResults,settings.onComplete);    
+                    });
+                    }
+                  $($.fn.sherlock.settings.searchButton).click(function(){
+                      $.fn.sherlock.runSearch($(settings.searchInput).val(),function(searchResults){
+                          $.fn.sherlock.drawSearchResultTable(searchResults,settings.onComplete);    
+                      }); 
+                  });
+                  
+                  //bind keypress of enter to search
+                  $(settings.searchInput).keydown(function(event,ui){
+                     if(event.keyCode == 13)
+                     {
+                        $($.fn.sherlock.settings.searchButton).click();
+                     }
+                  });
+                  
+              } 
+              
+              //get the list of searchable objects so we can create the popup config window where the
+              //user can choose what objects to search.
+              $.fn.sherlock.getSearchableObjectsList();   
+            });
+        
+          };
+        })( jQuery );  
+        
+        //find all the sObject record types in this org that can be searched.
+        $.fn.sherlock.getSearchableObjectsList = function()
+        {    
+            var settings = $.fn.sherlock.settings;
+
+            //visualforce remoting request to ask apex for the searchable objects
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.IntranetSearchController.getSearchableObjects}', 
+                function(result, event){
+                                     /* 
+                   //build a div to contain our list of searchable object checkboxes.
+                   var selectHtml = '<div id="'+$(settings.searchInput).attr('id')+'_searchOptions" title="Seach Objects" class="dialog"><ul class="searchResultList">';
+                   
+                   //create a checkbox for each searchable object
+                   for(obj in result)
+                   {
+                       selectHtml += '<li><input type="checkbox" class="objectSelect" value="'+result[obj]+'" id="chkbx_'+result[obj]+'" /><label for="chkbx_'+result[obj]+'">'+obj+'</label></li>';
+                   }
+                   selectHtml += '</ul></div>';
+                   
+                   //append our new div and select list to the DOM
+                   $(settings.contentTarget).after(selectHtml);
+                   */
+                   
+                   //since we'll have to run a compare in a moment, lets make everything lowercase so we don't have any
+                   //case sensitivity issues.
+                   for(var i = 0; i < settings.defaultSearch.length; i++)
+                   {
+                       settings.defaultSearch[i] = settings.defaultSearch[i].toLowerCase();
+                   }
+                   
+                   //check any box that is specified as a default search item (passed in at init)
+                   $('.objectSelect').each(function(){
+                       if( jQuery.inArray($(this).val().toLowerCase(), settings.defaultSearch) > -1)
+                       {
+                           $(this).attr('checked','checked');
+                       }
+                   });
+                   
+                   //turn our newly created div into a dialog window
+                   $('#'+$(settings.searchInput).attr('id')+'_searchOptions').dialog({
+                       autoOpen:false,
+                       height: 400
+                   });
+                   
+                   /*
+                   //create a link to open the dialog window. This if statment makes sure the link gets placed after the search button if there is one,
+                   //or right after the search box if there isnt a search button.
+                   if(settings.activeFilter)
+                   {
+                       $(settings.searchInput).after('<a href="" id="configureSearchOptions" style="display:none;">Options</a>');
+                   }
+                   else
+                   {
+                       $(settings.searchInput).next().after('<a href="" id="configureSearchOptions" style="display:none;">Options</a>');
+                   }
+                   */
+                   
+                   //hook up the link to open the dialog box.
+                   $('#configureSearchOptions').click(function(event,ui){
+                       event.preventDefault();
+                       $('#'+$(settings.searchInput).attr('id')+'_searchOptions').dialog('open');
+                   });
+                   
+                }, 
+                {escape: true});        
+        }  
+
+        //function for actually running the search.
+        $.fn.sherlock.runSearch = function(searchString,callback)
+        {
+            var settings = $.fn.sherlock.settings;
+            
+            //we only want to run a search if the user has entered more than one char. Otherwise salesforce wont run the SOSL statment
+            if(searchString.length > 1)
+            {
+                //create an array to hold all the objects we want to search
+                var objectsToQuery = new Array();
+                
+                //find all the checked object boxes
+                $.each( $(".objectSelect:checked"), function() {
+                  objectsToQuery.push($(this).val());
+                });
+                
+                //Add Objects to objectsToQuery stack for default search  
+                if(searchString != '') {
+                    objectsToQuery.push('Intranet_CMS_Page__c');
+                    objectsToQuery.push('Intranet_Article__c');
+                    objectsToQuery.push('FeedItem');
+                    objectsToQuery.push('ContentVersion');
+                    objectsToQuery.push('User');
+                }
+                
+                //run the visualforce remoting request
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.IntranetSearchController.globalSearch}', 
+                    searchString,(screen.width <= 480 || navigator.userAgent.match(/Android/i) || navigator.userAgent.match(/webOS/i) || navigator.userAgent.match(/iPhone/i) || navigator.userAgent.match(/iPod/i)) ? true : false,objectsToQuery,settings.objectLabels,settings.categoryLimit,
+                    function(result, event){
+                        if(jQuery.isFunction(callback)) 
+                        {
+                            callback(result);   
+                        }                                            
+                    }, 
+                    {escape: true} );
+                }
+        } 
+
+        $.fn.sherlock.drawSearchResultTable = function(result,callback)
+        {
+            var settings = $.fn.sherlock.settings;
+            $.fn.sherlock.searchResults = new Object();
+            //sum all of the results in each category to see if there are any results at all. If not, display the no results message, 
+            //otherwise actually output the results.
+            var totalResults = 0;
+            for(category in result)
+            {
+                totalResults += result[category].length;
+            }
+            if(totalResults > 0)
+            {           
+                //create out any existing search hits   
+                $(settings.contentTarget).empty();
+                var searchResultContent = '';
+                var paginationObject = 'Intranet_Article__c,FeedItem,ContentVersion';
+                var isPagiantionRequired = false;
+                //create HTML strings to show user the search results.
+                for(category in result)
+                {   
+                    //create a searchResultCategory for this search result.
+                    //searchResultContent += '<div class="searchResultCategory '+category.replace(/ /g,'')+'"><h3  class="searchCategoryHeader '+category.replace(/ /g,'')+'">'+category+' ('+result[category].length+')</h3><div class="searchResultSpacer"></div>';
+                    searchResultContent = '<div class="searchResultCategory '+category.replace(/ /g,'')+' container" id="searchResultCategory'+category.replace(/ /g,'')+'"><h3  class="searchCategoryHeader '+category.replace(/ /g,'')+'">'+category+' ('+result[category].length+')</h3><div class="searchResultSpacer"></div>';
+                    
+                    //if this category has any actual hits (which is always should, otherwise it wouldnt show up. Unless there was an error on the apex side while
+                    //attaching the search result items to the category in the map).
+                    if(result[category].length > 0)
+                    {
+                        searchResultContent += '<div class="page_navigation"></div><ul class="searchResultList content" id="'+category.replace(/ /g,'')+'_list">';
+                        for(var i = 0; i < result[category].length; i++)
+                        {
+                            $.fn.sherlock.searchResults[result[category][i].recordId] = result[category][i];
+                            searchResultContent += '<li id="'+result[category][i].recordId+'" class="searchResultListItem">';
+                            
+                            //if this search result has a non null thumbnail image, then create an img and show it.
+                            if(result[category][i].hasOwnProperty('thumbnail') && result[category][i].thumbnail.length > 0)
+                            {
+                                searchResultContent += '<div class="searchResultPhotoContainer"><img src="'+result[category][i].thumbnail+'" class="searchResultItemPhoto" /></div>'; 
+                            }
+                            
+                            //if this search result has a title, display it, and turn it into a link.
+                            if(result[category][i].hasOwnProperty('title') && result[category][i].title.length > 0)
+                            {       
+                                  searchResultContent += '<span class="searchResultItemTitle"><a href="'+result[category][i].link+'" target="'+settings.linkTarget+'" id="'+result[category][i].recordId+'" class="searchResultLink" style="color: #015ba7;">'+result[category][i].title+'</a> </span>';
+                            }
+                            
+                            //if this search result has a description, display it. The description will be trimmed down to the descriptionLength
+                            //specified in the plugin settings. This isnt a hard break, as it finds the next space available in the result and trims it there
+                            //so it doesnt cut off words.
+                            if(result[category][i].hasOwnProperty('description') && result[category][i].description.length > 0)
+                            {
+                                //lets trim the description to the nearest space after the provided max length if it is longer than the provided max length
+                                var description = result[category][i].description;
+                                if(description.length > settings.descriptionLength)
+                                {
+                                    description = description.substring(0,description.indexOf('',settings.descriptionLength)) + '...';;
+                                }
+                                if(result[category][i].type == 'Intranet_Article__c') {
+                                    searchResultContent += '<br/><span class="searchResultItemDescription">'+result[category][i].startDate+' </span>';
+                                                                    searchResultContent += '<br/><span class="searchResultItemDescription">'+description+' </span>';                                                    
+                                }else if(result[category][i].type == 'ContentVersion') {
+                                    searchResultContent += '<br/><span class="searchResultItemDescription">'+description+' </span>';
+                                }else if(result[category][i].type == 'FeedItem') {
+                                    searchResultContent += '<span class="searchResultItemDescription">'+description+' </span>';
+                                    searchResultContent += '<span style="font-size: 10pt;font-style: italic; font-family: Arial, sans-serif; color: rgb(127, 127, 127); ">'+ result[category][i].startDate +'</span>';
+                                }else {
+                                    searchResultContent += '<span class="searchResultItemDescription">'+description+' </span>';
+                                }
+                            }     
+                            
+                            //if this search result has a size, display it. The size is assumed to by in bytes, so it is divided by 1024 to get the kilobytes.                           
+                            if(result[category][i].hasOwnProperty('size') && result[category][i].size > 0)
+                            {
+                                searchResultContent += '<span class="searchResultItemSize"> ('+Math.round(result[category][i].size/1024)+'KB)</span>'; 
+                            }     
+                            searchResultContent += '<div class="searchResultClear"></div></li>';
+                        }
+                        searchResultContent += '</ul>';
+                        isPagiantionRequired = paginationObject.indexOf(result[category][0].type) >= 0 ? true : false;
+                    }
+                    searchResultContent += '</div>';
+                    //put the search results into the container.
+                    $(settings.contentTarget).append(searchResultContent);
+                    if(isPagiantionRequired) {
+                        $('#searchResultCategory'+category.replace(/ /g,'')).pajinate({items_per_page : settings.pageSize,abort_on_small_lists: true});
+                    }
+                }
+                highlightTermsIn($(".searchResultItemDescription"),$(settings.searchInput).val());
+            }
+            //if there were no results in any category, display the no results message.
+            else
+            {
+                $(settings.contentTarget).html('<div class="searchResultCategory"><h3  class="searchCategoryHeader">Search Returned 0 Results</h3><div class="searchResultSpacer"></div><span class="searchResultItemTitle">You can try the following <ul><li>Include a wildcard in your search to increase results by include a * at the end of the search term</li><li>Change the objects searched by using the search options</li><li>Decrease the search term complexity</li></ul></span></div>');
+            }   
+            
+            if(jQuery.isFunction(callback)) 
+            {
+                callback($(settings.contentTarget)[0]);
+            }                 
+            
+        }   
+        
+        $.fn.sherlock.getSearchResults = function(){
+            return $.fn.sherlock.searchResults;
+        }
+        
+        function getURLParameter(name) {
+                return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]);
+                }            
+    </script>
+    <body>
+
+            <div class="wrapper">
+                <c:IntranetHeader />        
+                <div class="content" style="min-height: 430px;">
+                    <c:IntranetMenu />                  
+                    <h1>Search Results</h1>
+                    <div class="searchAgain">
+                        <input class="searchBox text" style="float: none;" type="text" size="30"/>
+                    </div>
+                    <div class="searchResultClear"></div>       
+                </div>
+        
+            </div>
+            <c:IntranetFooter />
+</body>
+<script>
+    function getURLParameter(name) {
+        return decodeURI((RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]);
+    }
+    
+    function highlightTermsIn(jQueryElements, terms) {
+      var regex = new RegExp(terms, "gi");
+      jQueryElements.each(function(i) {
+        this.innerHTML = this.innerHTML.replace(
+                    regex,
+                    "<span style=\"background-color:yellow\">" + terms + "</span>"
+            );
+       }); 
+    }
+    
+    $(document).ready(function(){
+        $("#menuDiv ul:first > li:first").removeClass("active");
+        $('.searchBox').attr('value',getURLParameter("searchString"));
+    });
+    
+</script>
+</apex:page>

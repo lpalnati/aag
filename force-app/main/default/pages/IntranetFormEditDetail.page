@@ -1,0 +1,58 @@
+<apex:page standardController="Intranet_Form__c" extensions="IntranetFormEditDetailController" tabStyle="Intranet_Form__c">
+	<apex:sectionHeader title="Intranet Form edit" subtitle="{!intranetForm.name}" rendered="{!isEdit}"/>
+	<apex:sectionHeader title="Intranet Form" subtitle="{!intranetForm.name}" rendered="{!!isEdit}"/>
+	<apex:form > 
+		<apex:pageMessages id="error"/>
+		<apex:pageBlock title="Intranet Form" mode="{!IF(isEdit == true,'edit','detail')}">
+			<apex:pageBlockButtons >
+				<apex:commandButton action="{!save}" value="Save" rendered="{!isEdit}"/>
+				<apex:commandButton action="{!edit}" value="Edit" rendered="{!!isEdit}"/>
+				<apex:commandButton action="{!cancel}" value="Cancel"/>
+			</apex:pageBlockButtons>
+			<!--			compulsory displaying fields-->
+			<apex:pageBlockSection columns="2">
+				<apex:PageBlockSectionItem >
+				 <label>Form Name</label>	
+				 <apex:panelGroup >
+         	<apex:inputField value="{!intranetForm.Name}" rendered="{!isEdit}"/>
+         	<apex:outputField value="{!intranetForm.Name}" rendered="{!!isEdit}"/>
+         </apex:panelGroup>	
+        </apex:PageBlockSectionItem> 
+        <apex:PageBlockSectionItem >
+				 <label>Status</label>
+				 <apex:panelGroup >	
+         	<apex:inputField value="{!intranetForm.Status__c}" rendered="{!isEdit}"/>
+         	<apex:outputField value="{!intranetForm.Status__c}" rendered="{!!isEdit}"/>
+         </apex:panelGroup>	
+        </apex:PageBlockSectionItem>
+        <apex:PageBlockSectionItem >
+				 <label>Form Type</label>
+				 <apex:panelGroup >	
+         	<apex:inputField value="{!intranetForm.Form_Type__c}" rendered="{!isEdit}"/>
+         	<apex:outputField value="{!intranetForm.Form_Type__c}" rendered="{!!isEdit}"/>
+         </apex:panelGroup>	
+        </apex:PageBlockSectionItem>
+        <apex:PageBlockSectionItem >
+				 <label>Locked</label>
+				 <apex:panelGroup >	
+         	<apex:inputField value="{!intranetForm.Locked__c}" rendered="{!isEdit}"/>
+         	<apex:outputField value="{!intranetForm.Locked__c}" rendered="{!!isEdit}"/>
+         </apex:panelGroup>	
+        </apex:PageBlockSectionItem>
+      
+	      <!--	displaying fields based on form type-->
+				<apex:repeat value="{!IntranetFormType.IntranetFormListFields__r}" var="f">
+					<apex:PageBlockSectionItem >
+					 <label>{!$ObjectType.Intranet_Form__c.fields[f.Field_API_Name__c].label}</label>
+					 <apex:panelGroup >	
+	          	<apex:inputField value="{!intranetForm[f.Field_API_Name__c]}" rendered="{!isEdit}"/>
+	          	<apex:outputField value="{!intranetForm[f.Field_API_Name__c]}" rendered="{!!isEdit}"/>
+	          </apex:panelGroup>	
+	         </apex:PageBlockSectionItem> 
+	       </apex:repeat>
+	    </apex:pageBlockSection>   
+		</apex:pageBlock>
+		<apex:inputHidden value="{!Intranet_Form__c.Form_Type__c}" id="theHiddenInput"/>
+	 </apex:form>		
+	 <apex:relatedList subject="{!intranetForm.Id}" list="ProcessSteps" rendered="{!!isEdit}"/>
+</apex:page>

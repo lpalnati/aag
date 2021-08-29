@@ -1,0 +1,191 @@
+<apex:page controller="IntranetSubmittedFormListController" sidebar="false" showheader="false" id="pg">
+<head>
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+    <style>
+      ul li, ol li {
+         margin-left: 0px;
+         padding-left: 0;
+      }
+      .pagination {
+            font-size: 80%;
+      }
+        .pagination a, .pagination span {
+          display: block;
+          float: left;
+          padding: 0.3em 0.5em;
+          margin-right: 5px;
+          margin-bottom: 5px;
+        }
+        .pagination .current {
+            color:#e0262b;
+        }
+        .pagination .current:hover {
+        color:#e0262b;
+        }
+        .pagination .notPrevious, .pagination .notNext{
+          color:#999;
+          border-color:#999;
+          background:#fff;
+          text-decoration:none;
+        }
+        a:hover{
+            text-decoration: none;
+        }
+        .headerRow{
+        background-color:#e3e3e3;
+      }
+      .odd { 
+        background-color: #ffffff;
+        padding: 7px 0;
+        line-height: 16px;
+        font-size: 13px;
+        font-weight: normal;
+      }
+      .even {
+        background-color: #efefef;
+        padding: 7px 0;
+        line-height: 16px;
+        font-size: 13px;
+        font-weight: normal;
+      }
+      body a:hover{
+        text-decoration:none !important;
+      }
+    </style>
+    <script>
+        var currentIndex = 1;
+        var numberOfLinks = 1;
+        function setCurrentPage(index) {
+            if(currentIndex != index) {
+                currentIndex = parseInt(index);
+                getpage(currentIndex);
+            }
+        }
+        function next() {
+            if(currentIndex < numberOfLinks) {
+            currentIndex = currentIndex + 1;
+            getpage(currentIndex);
+            } 
+        }
+        function previous() {
+            if(currentIndex > 1) {
+             currentIndex = currentIndex - 1;
+             getpage(currentIndex);
+            } 
+        }
+        function setFormListPaginationStyle(cIndex, noLinks) {
+            currentIndex = cIndex;
+            numberOfLinks = noLinks;
+           if(currentIndex == numberOfLinks) {
+               $("#nextDown").removeClass("next").addClass("notNext");
+           } else {
+               $("#nextDown").removeClass("notNext").addClass("next");
+           }
+           if(currentIndex == 1) {
+               $("#previousDown").removeClass("prev").addClass("notPrevious");
+           } else {
+               $("#previousDown").removeClass("notPrevious").addClass("prev");
+           }
+        }
+    </script>
+</head>
+<body>
+<div class="wrapper">
+    <c:IntranetHeader />
+    <div class="content">
+    <c:IntranetMenu />
+    <h1>Forms</h1>
+        <apex:pageMessages id="error"/>
+        <div class="resultBlock">
+            <h3 style="display: block;">
+                <div style="float:left;">My Submitted Forms</div>  
+                <a href="/apex/IntranetFormTypes" class="grayBtn newformBtn" style="margin-top:7px;"><span><span>List of Forms</span></span></a>
+            </h3>
+            <apex:form id="frm" styleClass="listformfrm">
+            <apex:actionFunction name="getpage" action="{!getList}" rerender="formTable" status="status"> 
+                        <apex:param value="" assignTo="{!selectedPageNumber}" name="cPageNumber" />
+                    </apex:actionFunction>
+            <div>
+                 <apex:outputPanel id="formTable" >
+                    <apex:outputPanel rendered="{!submittedFormList.size == 0}">
+                        <div style="margin: 2%;">You have not yet submitted any forms.</div>
+                    </apex:outputPanel>
+                        <apex:outputPanel rendered="{!submittedFormList.size > 0}" style="top:25px;"> 
+                         <apex:dataTable value="{!submittedFormList}" var="form" headerClass="headerRow" rowClasses="odd,even" styleClass="list listTable">         
+                       <apex:column >
+                       <apex:facet name="header"> 
+                        <apex:commandLink action="{!addPaginationOnFormList}" value="Form Type{!IF(sortExpression=='Form_Type__c',IF(sortDirection='ASC',' ▼',' ▲'),'')}" reRender="formTable" status="status">
+                                    <apex:param value="Form_Type__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                </apex:commandLink>
+                     </apex:facet>
+                                 <a href="/apex/IntranetMySubmittedFormDetail?Id={!form.Id}&formTypeId={!form.Form_Type__c}">{!form.Form_Type__r.Name}</a>  
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header"> 
+                            <apex:commandLink action="{!addPaginationOnFormList}" value="Created Date{!IF(sortExpression=='CreatedDate',IF(sortDirection='ASC',' ▼',' ▲'),'')}" reRender="formTable" status="status">
+                                       <apex:param value="CreatedDate" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                        </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{!form.CreatedDate}"/>
+                    </apex:column>    
+                    <apex:column >
+                        <apex:facet name="header"> 
+                            <apex:commandLink action="{!addPaginationOnFormList}" value="Status{!IF(sortExpression=='Status__c',IF(sortDirection='ASC',' ▼',' ▲'),'')}" reRender="formTable" status="status">
+                                       <apex:param value="Status__c" name="column" assignTo="{!sortExpression}" ></apex:param>
+                                        </apex:commandLink>
+                        </apex:facet>
+                        <apex:outputText value="{!form.Status__c}"/>
+                    </apex:column>
+                 </apex:dataTable> 
+                     <table width="100%" style="margin-top: 8px;">
+                      <tr>
+                        <td>&nbsp;</td>
+                        <td style="float: right;vertical-align: middle;font-size: 15px;">
+                          <div id="PaginationDown" class="pagination">
+                              <a href="#" class="notPrevious" id="previousDown" onClick="previous();return false;">&#60;&#60;Prev</a>
+                              <span style="{!IF(formListPagination.isMorePrevious,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                              <apex:repeat value="{!formListPagination.listOfLinks}" var="number" > 
+                                  <a href="#" style="{!IF(number == selectedPageNumber,'text-decoration: none;','')}" 
+                                      class="{!IF(number == selectedPageNumber,'current','')}" onClick="setCurrentPage('{!number}');return false;">{!number}</a>
+                              </apex:repeat>
+                              <span style="{!IF(formListPagination.isMoreNext,'display:block;font-size: 14px;color: #5E82A3;','display:none;')}"><b>....</b></span>
+                              <a id="nextDown" href="#" class="next" onClick="next();return false;">Next&#62;&#62;</a>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+                    <script>setFormListPaginationStyle({!selectedPageNumber},{!formListPagination.totalPage});</script>   
+                    </apex:outputPanel>
+                    </apex:outputPanel>
+              <div class="clear"></div>
+            </div>
+            </apex:form>
+        </div>
+    </div>
+</div>
+<c:IntranetFooter />    
+</body>
+<apex:outputpanel >
+ <apex:actionstatus id="status">
+  <apex:facet name="start">
+   <div class="waitingSearchDiv" id="el_loading" style="background-color: #fbfbfb;
+          height: 600%;opacity:0.65;width:100%;"> 
+       <div class="waitingHolder" style="top: 10%; width: 100px;">
+        <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+        <span class="waitingDescription">Please Wait...</span>
+       </div>
+   </div>
+    </apex:facet>
+ </apex:actionstatus>
+</apex:outputpanel>
+<script>
+$(document).ready(function () {
+    $("#menuDiv ul:first > li:first").removeClass("active");
+});
+</script>
+</apex:page>

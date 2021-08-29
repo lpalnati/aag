@@ -1,0 +1,77 @@
+<apex:page controller="IntranetCreateFormListController" tabStyle="Form_List__tab">
+<script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+	<script>
+		function cancel() {
+    		window.location = '/apex/IntranetFormListAdmin';
+    }
+    function fieldValidation(size) {
+    	if($('.rightList option').size() > 0 ){
+    		saveForm();
+    	}else {
+    		alert('Please select fields to display on form.');
+    	}	
+    }
+	</script>
+	<apex:form >
+		<apex:actionFunction name="saveForm" action="{!save}" reRender="basicInfo"/>
+    <apex:pageBlock title="Create a Form">
+    	<apex:pageBlockButtons location="both">
+        <apex:commandButton value="Save" onclick="fieldValidation();" reRender="basicInfo"/>
+        <apex:commandButton value="Cancel" onclick="cancel();return false;"/>
+    	</apex:pageBlockButtons>
+     	<apex:PageBlockSection title="Step 1. Enter Form Name" collapsible="false" id="basicInfo">
+        <apex:PageBlockSectionItem >
+        	<Label>Form Name</Label>
+          <apex:InputField value="{!intranetFormList.Name}" required="true"/>
+        </apex:PageBlockSectionItem>
+        <apex:PageBlockSectionItem >
+        	<Label>Active</Label>
+          <apex:InputField value="{!intranetFormList.Active__c}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Select Reviewer</Label>
+          <apex:InputField value="{!intranetFormList.OwnerId}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Skip Review/Approval</Label>
+          <apex:InputField value="{!intranetFormList.Skip_Reviewer__c}"/>
+         </apex:PageBlockSectionItem>
+         <apex:PageBlockSectionItem >
+        	<Label>Form Category</Label>
+          <apex:InputField value="{!intranetFormList.Form_Category__c}" required="true"/>
+         </apex:PageBlockSectionItem>
+     	</apex:PageBlockSection>
+    	<apex:PageBlockSection title="Step 2. Select Fields to Display" collapsible="false">
+    		<c:IntranetMultiselectPicklist leftLabel="Available Fields" leftOptions="{!allFields}" 
+                                                               rightLabel="Selected Fields" rightOptions="{!selectedFields}" 
+                                                               size="15" width="200px"/>
+    	</apex:PageBlockSection> 
+    	<apex:PageBlockSection title="Step 3. Select Reviewers" collapsible="false">
+    		<apex:outputPanel >
+        	<Label>Search User for : </Label> 
+          <apex:InputText value="{!searchUserString}" styleClass="searchUser"/>
+          <input type="Button" Value="Find" onclick="populateUsersToSelect();" style="height: 25px;"/>
+          <apex:actionFunction name="populateUsersToSelect" action="{!populateUsersToSelect}" status="status" reRender="selectUser"/>
+         	<apex:actionstatus id="status">
+       		<apex:facet name="start">
+             <img class="waitingImage" src="/img/loading.gif" title="Please Wait..." />
+       		 </apex:facet>
+     			</apex:actionstatus>
+	    		<c:IntranetMultiselectPicklist leftLabel="Available Members" leftOptions="{!allUsers}" 
+                                                               rightLabel="Selected Members" rightOptions="{!selectedUsers}" 
+                                                               size="15" width="200px" id="selectUser"/>
+  			</apex:outputPanel> 	                                                             
+    	</apex:PageBlockSection>    
+  	</apex:pageBlock>
+	</apex:form>
+	<script>
+	$(document).ready(function () {
+   $('.searchUser').keydown(function(event,ui){
+     if(event.keyCode == 13) {
+        populateUsersToSelect();
+        return false;
+     }
+   });
+});
+</script>
+</apex:page>

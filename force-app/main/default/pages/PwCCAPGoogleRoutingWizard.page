@@ -1,0 +1,1180 @@
+<apex:page controller="PwCCAPRoutingWizardCtrl" showHeader="false" standardStylesheets="false" sidebar="false" applyHtmlTag="false" applyBodyTag="false" docType="html-5.0">
+<html lang="en">
+<head>
+    <title>Routing Wizard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no"></meta>
+    <apex:stylesheet value="{!URLFOR($Resource.RoutingWizardStaticResource, 'css/salesforce-lightning-design-system-vf.css')}" />
+
+    <!-- Bootstrap SF1 -->
+    <apex:stylesheet value="{!URLFOR($Resource.RoutingWizardStaticResource, 'css/bootstrap.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/jquery.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/bootstrap.min.js')}" />
+
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-bootstrap-multiselect.js')}" />
+
+
+    <!-- Google Map -->
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/lodash.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-simple-logger.min.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-google-maps.js')}" />
+
+    <!-- depends angualr -->
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/Sortable.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-legacy-sortable.js')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-sanitize.js')}" />
+
+    <!-- date picker -->
+    <apex:stylesheet value="{!URLFOR($Resource.RoutingWizardStaticResource, 'css/angular-datepicker.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.RoutingWizardStaticResource, 'js/angular-datepicker.js')}" />
+    
+    <apex:include pageName="PwCCAPCommonCSS"/>
+    <style type="text/css">
+        /* init map container */
+        html{
+            height: 100%;
+        }
+        body{
+            height: 100%;
+        }
+        .angular-google-map,
+        .angular-google-map-container{
+            width: 100%;
+            height: 100%;
+        }
+        .form-control{
+            color: #000;
+        }
+        /* mobile display */
+        .rout-lg-display{
+            display: none;
+        }
+        .rout-xs-display{
+            display: block;
+        }
+        .map-container{
+            display: block;
+        }
+        /* header */
+        .logoImg{
+            width: 100px;
+            height: 70px;
+        }
+        .page-title{
+            height: 70px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .head-form{
+            height: calc(100% - 70px);
+            padding-top: 80px;
+            background: linear-gradient(to bottom right, #d8dde6, white);
+        }
+        .search-box-xs{
+            width: 100%;
+        }
+        .unit-select-xs{
+            width: 100%;
+        }
+        .submit-btn{
+            width: 100%;
+        }
+        .search-object .dropdown-menu > .active > a{
+            background-color: #D7D4CA;
+        }
+        /* tab */
+        .view-selector{
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .view-btn{
+            height: 35px;
+            border-color: #fff!important;
+            border-radius: 0px;
+        }
+        .active.view-btn{
+            background: #fff;
+            color: #3F3F40!important;
+        }
+        .view-btn{
+            background: #3F3F40;
+            color: #fff!important;
+        }
+        .view-btn-group{
+            width: 200px;
+            z-index: 1;
+        }
+        .back-btn{
+            width: 30px;
+            position: absolute;
+            left: 5px;
+            top: 17px;
+        }
+        /* map */
+        .map-view{
+            height: calc(100% - 125px);
+            width: 100%;
+            margin: 0px auto;
+            position: relative;
+            padding: 0px;
+        }
+        /* map window */
+        .info-window-btn-group{
+            position: absolute;
+            bottom: 10px;
+        }
+        .info-window-btn-group div button{
+            border-radius: 0px;
+            width: 100%;
+        }
+        .info_window_title{
+            font-size: 15px;
+            font-family: Myraid Pro bold;
+            color: #ea7224;
+            padding: 3px 0px; 
+        }
+        .info_window_other{
+            font-size: 13px;
+            color: #555;
+            padding: 1px 0px;
+        }
+        .info-hide{
+            display: none;
+        }
+        /* left panel */
+        .left-panel{
+            position: absolute;
+            top: 20px;
+            left: 0px;
+            height: calc(100% - 20px);
+            z-index: 2;
+        }
+        .show-filter-btn{
+            height: 55px;
+            text-align: center;
+            width: 20px;
+            color: #fff;
+            line-height: 56px;
+            position: relative;
+            left: 0px;
+            cursor: pointer;
+        }
+        .hid-filter-btn{
+            height: 55px;
+            text-align: center;
+            width: 20px;
+            color: #fff;
+            line-height: 56px;
+            position: relative;
+            left: 250px;
+            cursor: pointer;
+        }
+        .filter-container{
+            width: 0px;
+            height: 100%;
+            overflow: auto;
+            position: absolute;
+            background: #f7f4ef;
+            top: 0;
+        }
+        .filter-container.active{
+            width: 250px;
+            padding: 10px;
+            background-color: #3F3F40;
+            overflow: auto;
+        }
+
+        .filter-options{
+            min-height: calc(100% - 90px);
+        }
+        .filter-submit{
+            background: #3F3F40;
+        }
+        .filter-btn{
+            width: 100%;
+            color: #fff!important;
+            border-radius: 0px;
+            font-size: 18px;
+            font-weight: bolder;
+        }
+        .filter-title{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 17px;
+            font-weight: bolder;
+            padding: 10px;
+            color: #fff;
+            margin: 10px 0px;
+        }
+        .filter-input{
+            border-radius: 0px;
+        }
+        .option-label{
+            width: 100%;
+            color: #fff;
+        }
+        .option-position{
+            float: right;
+        }
+        .filter-option{
+            padding: 3px 10px;
+        }
+        .search-dropdown{
+            background: #fff;
+            position: absolute;
+            width: calc(100% - 20px);
+            padding: 10px;
+            list-style-type: none;
+        }
+        .search-dropdown li{
+            padding-top: 3px;
+            padding-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .search-dropdown li:hover{
+            background-color: #f5f5f5;
+        }
+        .search_icon span{
+            cursor: pointer;
+        }
+        /* right penel */
+        .right-panel{
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            min-width: 0px;
+        }
+        .right-panel.active{
+            height: calc(100% - 20px);
+            min-width: calc(100% - 20px);
+        }
+        .my-locations,.route-queue{
+            padding: 5px 0px;
+            position: relative;
+            overflow: auto;
+        }
+        .route-icon-container{
+            display: none;
+        }
+        .location-detail,.queue-detail{
+            width: 200px;
+            background: #fff;
+            border: 1px solid #3F3F40;
+            margin: 0 auto;
+            display: none;
+        }
+        .location-detail.on-mobile,
+        .queue-detail.on-mobile{
+            display: block;
+        }
+        .location-detail > div,
+        .queue-detail > div{
+            max-height: 90px;
+            overflow: auto;
+        }
+        .location-detail > :first-child,
+        .queue-detail > :first-child{
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #3F3F40;
+            color: #fff;
+        }
+        .location-detail > div > div,
+        .queue-detail > div > div{
+            padding: 5px 10px;
+            border-top: 1px solid #3F3F40;
+        }
+        .location-detail div div,
+        .queue-detail div div{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .route-queue div button{
+            width: 100%;
+            margin-top: 10px;
+        }
+        .text-overflow{
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .calculate-btn{
+            background: #EB8C00!important;
+            border: #EB8C00!important;
+            font-size: 18px;
+        }
+        .clear-btn{
+            background: #3F3F40!important;
+            border: #3F3F40!important;
+            font-size: 18px;
+        }
+        
+        .mobile-location-icon{
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            color: #fff;
+            cursor: pointer;
+            float: right;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .mobile-route-icon{
+            position: absolute;
+            top: 70px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            color: #fff;
+            cursor: pointer;
+            float: right;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .xs-right-btn-group{
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+        .xs-right-btn-group div{
+            width: 50%;
+            padding: 3px;
+        }
+        .xs-right-btn-group div button{
+            width: 100%;
+            border-radius: 0;
+            height: 35px;
+        }
+        /* table view */
+        .table-view{
+            width: 1px;
+            min-width: 100%;
+            *width: 100%;
+            margin-top: 0px;
+        }
+        .table-search-input{
+            width: 100%;
+            float: right;
+        }
+        .table-nav-btn{
+            background: #3F3F40;
+            border: #3F3F40;
+            border-radius: 0px;
+        }
+        .table-nav-btn.mobileBtnActive{
+            background: #EB8C00;
+            border: #EB8C00;
+        }
+        .table-nav-mobile{
+            display: flex;
+            justify-content: flex-start;
+        }
+        .table-nav-mobile div{
+            padding: 5px 3px;
+        }
+        .table-search{
+            border-top: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            padding: 3px 10px;
+        }
+        .tab-content table{
+            margin-bottom: 0px;
+        }
+        .table-content{
+            border-right: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            padding: 0px;
+            overflow-x: auto;
+        }
+        tr > td, tr > th{
+            text-align: center;
+        }
+        .table-tabs{
+            border-bottom: 0px;
+        }
+        .table-nav li{
+            text-align: center;
+        }
+        .table-nav li a{
+            border-radius: 0px;
+            background-color: #AFA997;
+            color: #fff;
+            width: 140px;
+        }
+        .table > thead > tr > td.active,
+        .table > tbody > tr > td.active,
+        .table > tfoot > tr > td.active,
+        .table > thead > tr > th.active,
+        .table > tbody > tr > th.active,
+        .table > tfoot > tr > th.active,
+        .table > thead > tr.active > td,
+        .table > tbody > tr.active > td,
+        .table > tfoot > tr.active > td,
+        .table > thead > tr.active > th,
+        .table > tbody > tr.active > th,
+        .table > tfoot > tr.active > th {
+            background-color: #AFA997;
+        }   
+        /* pagination */
+        .pagination > li > a:hover,
+        .pagination > li > span:hover,
+        .pagination > li > a:focus,
+        .pagination > li > span:focus {
+            color: #fff;
+            background-color: #E0301E;
+        }
+        .pagination > li > a,
+        .pagination > li > span{
+            color: #3F3F40;
+        }
+        .pagination > .active > a,
+        .pagination > .active > span,
+        .pagination > .active > a:hover,
+        .pagination > .active > span:hover,
+        .pagination > .active > a:focus,
+        .pagination > .active > span:focus {
+            background-color: #E0301E;
+            border-color: #E0301E;
+        }
+        .pagination-nav{
+            position: absolute; 
+            left: 10px;
+        }
+        /* modal */
+        .modal-title{
+            text-align: center;
+        }
+        .modal-body > div{
+            padding: 3px;
+            display: block;
+        }
+        .calculate-select{
+            width: 100%;
+        }
+        /* more actions */
+        .more-actions-tab{
+            background: rgb(244, 246, 249);
+            border-radius: 6px 6px 0px 0px;
+        }
+        .more-actions-tab > li > a{
+            height: 65px;
+            line-height: 2.7;
+            padding: 10px;
+        }
+        .more-actions-btns{
+            display: flex;
+            justify-content: flex-end;
+        }
+        .more-actions-btns > button{
+            margin-left: 10px;
+        }
+        .ng-empty.ng-touched{
+            border-color: #a94442;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+        }
+        .time-pick{
+            display: inline-flex;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .successMessage{
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background: #fff;
+            font-size: 20px;
+            border: 1px solid;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 10px 11px 10px rgba(0, 0, 0, 0.51);
+            transition: opacity 0.5s linear;
+        }
+        .message-fade-in{
+            display: block;
+        }
+        .lookup-drop-down{
+            position: absolute;
+            width: 100%;
+            max-height: 250px;
+            min-height: 50px;
+            overflow: scroll;
+            z-index: 1;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background: #fff;
+        }
+        .clear-lookup-btn{
+            position: absolute;
+            width: 30px;
+            bottom: 5px;
+            right: 0px;
+            text-align: center;
+            cursor: pointer;
+        }
+    @media screen and (min-width: 425px) {
+        /* PC display */
+        .rout-lg-display{
+            display: block;
+        }
+        .rout-xs-display{
+            display: none;
+        }
+        /* map view */
+        .map-view{
+            height: calc(100% - 125px);
+            width: 100%;
+            margin: 0px auto;
+            position: relative;
+            padding: 0px;
+        }
+        /* header */
+        .header{
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .search-box-lg{
+            width: 45%;
+        }
+        .input-width{
+            width: 100%!important;
+        }
+        .header-filter{
+            height: 55px;
+        }
+        .search-object div button{
+            height: 55px;
+            width: 100%!important;
+            background-color: #D7D4CA;
+        }
+        .unit-select-lg{
+            width: 15%;
+        }
+        .submit-btn{
+            width: 80px;
+        }
+        .submit-btn{
+            width: 100px;
+            color: #fff!important;
+            font-weight: normal!important;
+        }
+        .head-form{
+            height: 70px;
+            padding-top: 8px;
+            background: #fff;
+            display: block;
+        }
+        /* dynamic tab */
+        .view-btn-group{
+            width: 300px;
+            z-index: 1;
+        }
+        .lg-view-selector{
+            padding: 10px;
+            display: flex!important;
+            justify-content: center;
+            align-items: center;
+        }
+        /* left panel */
+        .left-panel{
+            position: absolute;
+            top: -55px;
+            left: 0px;
+            height: calc(100% + 55px);
+            z-index: 2;
+        }
+        .show-filter-btn{
+            left: 7px;
+        }
+        .hid-filter-btn{
+            left: 300px;
+        }
+        .filter-container{
+            width: 7px;
+        }
+        .filter-container.active{
+            width: 300px;
+        }
+        .filter-btn{
+            font-size: 20px;
+        }
+        .filter-title{
+            font-size: 20px;
+        }
+        /* right-panel */
+        .route-icon-container{
+            width: 50px;
+            height: 50px;
+            color: #fff;
+            cursor: pointer;
+            float: right;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .location-detail,.queue-detail{
+            width: 300px;
+        }
+        .location-detail.on-pc,
+        .queue-detail.on-pc{
+            display: block;
+        }
+        .mobile-location-icon,
+        .mobile-route-icon{
+            display: none;
+        }
+        .xs-right-btn-group{
+            display: none;
+        }
+        /* info window */
+        .info_window_title{
+            font-size: 24px;
+            padding: 5px 0px; 
+        }
+        .info_window_other{
+            font-size: 16px;
+            padding: 3px 0px;
+        }
+        /* table view */
+        .table-view{
+            margin-top: 20px;
+        }
+        .table-search-input{
+            width: 300px;
+        }
+        .table-content{
+            overflow: visible;
+        }
+        .pagination-nav{
+            right: 0px;
+            left: inherit;
+        }
+        /* modal */
+        .modal-body > div{
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+        .calculate-select{
+            width: 70%;
+        }
+    }
+    </style>
+</head>
+<body ng-app="routingWizard" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <div class="container-fluid" style="height: 100%" ng-controller="myCtrl">
+        <div class="row" style="height: 100%" ng-init="initResult()">
+            <!-- header -->
+            <!-- <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 header"> -->
+                <!-- <div class="col-xs-3 col-sm-1 col-md-1 col-lg-1" style="padding: 0px">
+                    <img class="logoImg" src="{!URLFOR($Resource.RoutingWizardStaticResource,'img/PwC_Logo.png')}" />
+                </div> -->
+                <div class="col-xs-9 col-sm-2 col-md-2 col-lg-2 page-title">
+                    <span class="clr_blk ftSz_xl_b">Routing Wizard</span>
+                </div>
+                <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9 head-form" ng-class="{'map-container': isShowSearchBoxOnMobile ,'rout-lg-display': !isShowSearchBoxOnMobile }">
+                    <form class="form-inline" role="form">
+                        <div class="form-group search-box-lg search-box-xs">
+                            <div id="searchbox" style="position: relative;">
+                                <div style="position: absolute; right: 0px; top: 50%">
+                                    <span class="glyphicon glyphicon-send" style="position: absolute; top: -8px; right: 0px; cursor: pointer; text-align: center; width: 35px; height: 35px;" ng-click="goToMyLocation()"></span>
+                                </div>
+                            </div>
+                            <script type="text/ng-template" id="searchbox.tpl.html" ng-controller="myCtrl">
+                                <input type="text" ng-model="ngModel" class="form-control input-width header-filter bgclr_ash" placeholder="Please enter your location here" />
+                            </script>
+                        </div>
+                        <div class="form-group unit-select-lg unit-select-xs">
+                            <select ng-model='selectedSize' class="form-control input-width header-filter bgclr_ash" ng-options="selectedSize +' '+currentLocation.Unit for selectedSize in size">
+                            </select>
+                        </div>
+                        <div class="form-group multiple-selector unit-select-lg unit-select-xs">
+                            <multiselect ng-model="selectedObject" options="searchObjects" class="search-object" show-search="false" show-select-all="true" show-unselect-all="true" ng-change="changeObj()"></multiselect>
+                        </div>
+                        <button type="button" class="btn header-filter submit-btn ftSz_lg bgclr_org" ng-click='submitFilter()'>Submit</button>
+                    </form>
+                </div>
+            <!-- </div> -->
+            <!-- end of header -->
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 bgclr_blk lg-view-selector" ng-class="{'rout-lg-display': isShowSearchBoxOnMobile , 'view-selector': !isShowSearchBoxOnMobile }">
+                <div class="rout-xs-display back-btn" ng-click="showLocationOnMobile()">
+                    <span class="glyphicon glyphicon-chevron-left" style="color: #fff"></span>
+                </div>
+                <div class="btn-group btn-group-justified view-btn-group">
+                    <div class="btn-group">
+                        <button type="button" class="btn view-btn" ng-class="{ active:showMap()}" ng-click="setView('map')">map view</button>
+                      </div>
+                      <div class="btn-group">
+                        <button type="button" class="btn view-btn" ng-class="{ active:showTable()}" ng-click="setView('table')">table view</button>
+                      </div>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 map-view" ng-show="showMap()" ng-class="{'rout-lg-display': isShowSearchBoxOnMobile, 'map-container': !isShowSearchBoxOnMobile}">
+                <!-- map container -->
+                <ui-gmap-google-map center='map.center' zoom='map.zoom' events="map.events" options="map.options" draggable="true">
+                    <!-- Favorite location -->
+                    <ui-gmap-marker coords="locationMarker.coords" options="locationMarker.options" idkey="locationMarker.id" />
+                    <!-- map circle -->
+                    <ui-gmap-circle center="circles.center" stroke="circles.stroke" fill="circles.fill" radius="circles.radius" visible="circles.visible" geodesic="circles.geodesic" editable="circles.editable" draggable="circles.draggable" clickable="circles.clickable" control="circles.control"></ui-gmap-circle>
+                    <!-- map search box -->
+                    <ui-gmap-search-box parentdiv="'searchbox'" template="searchbox.template" events="searchbox.events" ng-model="searchedLocation"></ui-gmap-search-box>
+                    <!-- info window -->
+                    <ui-gmap-window show="infoWindow.show" coords="infoWindow.coords" options="infoWindow.options" closeClick='infoWindow.closeInfo' >
+                        <div ng-controller="myCtrl">
+                            <header class="info_window_title">{{markerInfo[0].markerName}}</header>
+                            <div class="info_window_adderss">{{markerInfo[0].markerAddress}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[0].displayTitle}}</b> {{markerInfo[0].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[1].displayTitle}}</b> {{markerInfo[1].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[2].displayTitle}}</b> {{markerInfo[2].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[3].displayTitle}}</b> {{markerInfo[3].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[4].displayTitle}}</b> {{markerInfo[4].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[5].displayTitle}}</b> {{markerInfo[5].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[6].displayTitle}}</b> {{markerInfo[6].displayValue}}</div>
+                            <div class="info_window_other"><b>{{markerInfo[7].displayTitle}}</b> {{markerInfo[7].displayValue}}</div>
+                            <div class="info-window-btns rout-lg-display">
+                                <button class="mapBtn btn btn-primary" ng-click="triggerAddToRouteQueue()" style="background: #ea7224; border: #ea7224; margin: 2px;">Add to Route Queue</button>
+                                <button class="mapBtn btn btn-primary" ng-click="triggerGoToRecord()" style="background: #555; border: #555; margin: 2px;">Go to Record</button>
+                                <button class="mapBtn btn btn-primary" ng-click="triggerAddToMyLocation()" style="background: #555; border: #555; margin: 2px;">Favorite Location</button>
+                                <button class="mapBtn btn btn-primary" ng-click="showAction()" style="background: #555; border: #555; margin: 2px;">More</button>
+                            </div>
+                        </div>
+                    </ui-gmap-window> 
+                    <!-- markers -->
+                    <ui-gmap-markers ng-if="randomMarkers" models="randomMarkers" coords="'self'" icon="'icon'" click="onMarkerClicked" options="'options'" events="randomMarkersEvents">
+                    </ui-gmap-markers>
+                </ui-gmap-google-map>
+                <!-- end of map container -->
+                <div ng-class="{'rout-xs-display': infoWindow.show , 'info-hide' : !infoWindow.show}" class="info-window-btn-group">
+                    <div class="col-xs-12" style="margin-bottom: 5px">
+                        <button class="btn btn-primary" id="queue" ng-click="addToRouteQueue()" style="background: #ea7224; border: #ea7224; font-size: 15px; font-weight: bold;">Add to Route Queue</button>
+                    </div>
+                    <div class="col-xs-4" style="padding-right: 3px;">
+                        <button class="btn btn-primary" id="record" ng-click="goToRecord()" style="background: #555; border: #555; font-size: 15px; font-weight: bold; padding-left: 0px; padding-right: 0px;">Go to Record</button>
+                    </div>
+                    <div class="col-xs-4" style="padding-right: 3px; padding-left: 3px;">
+                        <button class="btn btn-primary" id="mylocation" ng-click="addToMyLocation()" style="background: #555; border: #555; font-size: 15px; font-weight: bold;">Favorite Location</button>
+                    </div>
+                    <div class="col-xs-4" style="padding-left: 3px;">
+                        <button class="btn btn-primary" style="background: #555; border: #555; font-size: 15px; font-weight: bold;" data-toggle="modal" data-target="#moreActions" ng-click="setMoreActionId(markerInfo[0].markerId, markerInfo[0].markerGroup)">More</button>
+                    </div>
+                </div>
+                <!-- right panel -->
+                <div class="right-panel" ng-class="{active: isRightPanelShow}">
+                    <div class="my-locations">
+                        <div id="location-icon" class="route-icon-container bgclr_blk" ng-click="setMyLocationView(2)" ng-show="showMyLocationIcon()">
+                            <span class="glyphicon glyphicon-map-marker" style="font-size:25px;"></span>
+                        </div>
+                        <div class="location-detail" ng-class="{'on-pc': showMyLocationDetail(), 'on-mobile': myLocationsViewOnMobile}">
+                            <div ng-click="setMyLocationView(1)">
+                                <div style="padding-left: 0px">
+                                    <span class="glyphicon glyphicon-map-marker" style="font-size:25px;"></span>
+                                    <span style="padding-left: 10px; font-size: 20px;">Favorite location</span>
+                                </div>
+                                <span class="glyphicon glyphicon-minus"></span>
+                            </div>
+                            <div>
+                                <div ng-repeat="ml in myLocations">
+                                    <span class="text-overflow">{{ml.Location_Name__c}}</span>
+                                    <div style="white-space: nowrap;">
+                                        <span class="glyphicon glyphicon-remove" ng-click="deleteMyLocation(ml,$index)"></span>
+                                        <span class="glyphicon glyphicon-map-marker" ng-click="moveToMyLocation(ml)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="route-queue">
+                        <div id="route-icon" class="route-icon-container bgclr_blk" ng-click="setRouteQueueView(2)" ng-show="showRouteQueueIcon()">
+                            <img src="{!URLFOR($Resource.RoutingWizardStaticResource,'icon/route_white.png')}" alt=""/>
+                        </div>
+                        <div class="queue-detail" ng-class="{'on-pc': showRouteQueueDetail(), 'on-mobile': routeQueueViewOnMobile}">
+                            <div ng-click="setRouteQueueView(1)">
+                                <div style="padding-left: 0px;">
+                                    <img src="{!URLFOR($Resource.RoutingWizardStaticResource,'icon/route_white.png')}" />
+                                    <span style="padding-left: 10px; font-size: 20px;">Route queue</span>
+                                </div>
+                                <span class="glyphicon glyphicon-minus"></span>
+                            </div>
+                            <div ng-sortable="sortableConfig" style="max-height: 168px;">
+                                <div ng-repeat="routeQueue in routeQueues" ng-model="routeQueues" style="cursor: move;">
+                                    <div>
+                                        <span class="glyphicon glyphicon-move" style="top: 0px;"></span>
+                                        <span class="text-overflow" style="width: 230px">{{routeQueue.title}}</span>
+                                    </div>
+                                    <div ng-click="removeRouteQueue(routeQueue)">
+                                        <span class="glyphicon glyphicon-remove"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rout-lg-display">
+                            <div ng-show="showRouteQueueDetail()">
+                                <button type="button" class="mapBtn btn btn-primary calculate-btn" data-toggle="modal" data-target="#myModal" ng-click="setStartAndEnd()">Calculate my route</button>
+                            </div>
+                            <div ng-show="showRouteQueueDetail()">
+                                <button class="mapBtn btn btn-primary clear-btn" ng-click="clearRouteQueue()">Clear route</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xs-right-btn-group" ng-show="routeQueueViewOnMobile">
+                        <div>
+                            <button type="button" class="mapBtn btn btn-primary calculate-btn" data-toggle="modal" data-target="#myModal" ng-click="setStartAndEnd()">Calculate my route</button>
+                        </div>
+                        <div>
+                            <button class="mapBtn btn btn-primary clear-btn" ng-click="clearRouteQueue()">Clear route</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rout-xs-display">
+                    <div class="bgclr_blk mobile-location-icon" ng-click="setMyLocationViewOnMobile()">
+                        <span class="glyphicon glyphicon-map-marker" style="font-size:25px;"></span>
+                    </div>
+                    <div class="bgclr_blk mobile-route-icon" ng-click="setRouteQueueViewOnMobile()">
+                        <img src="{!URLFOR($Resource.RoutingWizardStaticResource,'icon/route_white.png')}" alt=""/>
+                    </div>
+                </div>
+                <!-- end of right panel -->
+                <!-- left panel -->
+                <div class="left-panel">
+                    <div class="show-filter-btn bgclr_org" ng-show="hideFilter()" ng-click="setFilterDisplay('show')">
+                        <span class="glyphicon glyphicon-chevron-right"></span>
+                    </div>
+                    <div class="filter-container" ng-show="hideFilter()">
+                    </div>
+                    <div class="hid-filter-btn bgclr_org" ng-show="showFilter()" ng-click="setFilterDisplay('hide')">
+                        <span class="glyphicon glyphicon-chevron-left"></span>
+                    </div>
+                    <div class="filter-container active" ng-show="showFilter()">
+                        <div>
+                            <input class="form-control filter-input" type="text" ng-model="doSearchMarker" ng-change="searchFromMarker()" placeholder="Search for a record" />
+                            <ul ng-show="searchOption.isDisplay" class="search-dropdown">
+                                <li ng-repeat="sopn in searchOption.options">
+                                    <div ng-click="showTheMarkerInfo(sopn)">
+                                        {{sopn.title.split("_")[1]}}
+                                    </div>
+                                    <div class="search_icon clr_gry">
+                                        <span class="glyphicon glyphicon-map-marker" data-toggle="tooltip" data-placement="top" title="Add to Route Queue" ng-click="addToRouteQueue(0,sopn)"></span>
+                                        <span class="glyphicon glyphicon-share" data-toggle="tooltip" data-placement="top" title="Go to Record" ng-click="goToRecord(0,sopn)" style="margin-left: 5px;"></span>
+                                    </div>
+                                </li>
+                                <li ng-if="searchOption.options.length == 0">No result founded</li>
+                            </ul>
+                        </div>
+                        <div class="filter-submit" style="margin-top: 10px">
+                            <button type="button" class="btn filter-btn bgclr_org" ng-click='submitFilter()'>Apply filters</button>
+                        </div>
+                        <div class="filter-options">
+                            <div ng-if="selectedObject.indexOf(key) >= 0 && value.length > 0" ng-repeat="(key, value) in filterView">
+                                <div class="filter-title bgclr_org" ng-click="setConfigDisplay(key)">
+                                    <span>{{key}}</span>
+                                    <span ng-show="filterViewsDisplay[key]" class="glyphicon glyphicon-minus"></span>
+                                    <span ng-show="!filterViewsDisplay[key]" class="glyphicon glyphicon-plus"></span>
+                                </div>
+                                <div ng-show="filterViewsDisplay[key]">
+                                    <div ng-repeat="searchConfg in value">
+                                        <div class="filter-title bgclr_gry" ng-click="showOptions(searchConfg)">
+                                            <span>{{searchConfg.DisplayName}}</span>
+                                            <span ng-if="searchConfg.isDisplay" class="glyphicon glyphicon-minus"></span>
+                                            <span ng-if="!searchConfg.isDisplay" class="glyphicon glyphicon-plus"></span>
+                                        </div>
+                                        <div ng-if="searchConfg.InputType === 'multipicklist'" ng-show="searchConfg.isDisplay" ng-repeat="option in searchConfg.Options track by $index" class="filter-option">
+                                          <label class="option-label">
+                                            <!-- {{option}} -->
+                                            <span ng-bind-html="filterOptionHtml(option)"></span>
+                                            <input type="checkbox" class="option-position" ng-model="searchConfg.selectedValue[$index]"/>
+                                          </label>
+                                        </div>
+                                        <div ng-if="searchConfg.InputType === 'boolean'" ng-show="searchConfg.isDisplay" class="filter-option">
+                                            <label class="option-label">
+                                            Yes
+                                            <input type="radio" class="option-position" ng-model="searchConfg.selectedValue" value="false"/>
+                                          </label>
+                                          <label class="option-label">
+                                            No
+                                            <input type="radio" class="option-position" ng-model="searchConfg.selectedValue" value="true" />
+                                          </label>
+                                          <label class="option-label">
+                                            None
+                                            <input type="radio" class="option-position" ng-model="searchConfg.selectedValue" value="All" />
+                                          </label>
+                                        </div>
+                                        <div ng-if="searchConfg.InputType === 'picklist'" ng-show="searchConfg.isDisplay" ng-repeat="option in searchConfg.Options track by $index" class="filter-option">
+                                            <label class="option-label">
+                                                <!-- {{option}} -->
+                                            <span ng-bind-html="filterOptionHtml(option)"></span>
+                                            <input type="radio" class="option-position" ng-model="searchConfg.selectedValue" ng-value="option" />
+                                          </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- end of left panel -->
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 table-view" ng-show="showTable()"  ng-class="{'rout-lg-display': isShowSearchBoxOnMobile, 'map-container': !isShowSearchBoxOnMobile}">
+                <ul class="nav nav-tabs table-nav rout-lg-display table-tabs" role="tablist">
+                    <li role="presentation" ng-repeat="(key,value) in tableView">
+                        <a ng-href="#{{key}}" role="tab" data-toggle="tab">{{key + " ("+value.content.length+")"}}</a>  
+                    </li>
+                </ul>
+                <div class="table-nav-mobile rout-xs-display" style="max-width: 100%; overflow: scroll;">
+                    <div role="presentation" ng-repeat="(key,value) in tableView">
+                        <button class="btn btn-primary table-nav-btn" ng-href="#{{key}}" role="tab" data-toggle="tab" ng-click="styleChange()" style="font-size: 15px; font-weight: bold;">{{key}}</button> 
+                    </div>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 table-search">
+                    <input type="text" ng-model="tableInput" ng-change="searchTable()" class="form-control table-search-input" placeholder="Search for a record"/>
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 tab-content table-content">
+                    <div id="{{key}}" class="tab-pane active" ng-repeat="(key,value) in tableView">
+                        <table ng-if="value" class="table table-hover prospects-table-content ftSz_sm" style="color: #000"> 
+                            <tr>
+                                <th>Actions</th>
+                                <th ng-repeat="title in value.title">{{title}}</th>
+                            </tr>
+                            <tr ng-class="{active: markerInfo[0].markerId == contentObj.info.Id}" ng-show="value.afterPagination.currentPageItems.indexOf(contentObj) >= 0 " ng-repeat="contentObj in value.afterFilter">
+                                <td style="vertical-align: middle;">
+                                    <div class="dropdown">
+                                      <a id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color: #000">
+                                          <span class="caret"></span>
+                                      </a>
+                                      <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                        <li><a ng-click="addToRouteQueue(contentObj.info)">Add to Route Queue</a></li>
+                                        <li><a ng-click="goToRecord(contentObj.info)">Go to Record</a></li>
+                                        <li><a ng-click="addToMyLocation(contentObj.info)">Favorite Location</a></li>
+                                        <li><a data-toggle="modal" data-target="#moreActions" ng-click="setMoreActionId(contentObj.info.Id, key)">More Actions</a></li>
+                                      </ul>
+                                    </div>
+                                </td>
+                                <td ng-repeat="contentDetail in contentObj.forTable track by $index">
+                                    <span ng-bind-html="filterOptionHtml(contentDetail)"></span>
+                                </td>
+                            </tr>
+                        </table>
+                        <nav class="pagination-nav">
+                          <ul ng-if="value.afterPagination.pages.length > 1" class="pagination">
+                            <li ng-class="{disabled: value.afterPagination.currentPage === 1}"><a ng-click="setPage(key, value.afterFilter, 1)">&laquo;</a></li>
+                            <li ng-repeat="page in value.afterPagination.pages" ng-class="{active: value.afterPagination.currentPage === page}"><a ng-click="setPage(key, value.afterFilter, page)">{{page}}</a></li>
+                            <li ng-class="{disabled: value.afterPagination.currentPage === value.afterPagination.totalPages}"><a ng-click="setPage(key, value.afterFilter, value.afterPagination.totalPages)">&raquo;</a></li>
+                          </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>  
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <div class="modal-title ftSz_xl_b" id="myModalLabel">Calculate route</div>
+              </div>
+              <div class="modal-body">
+                <div>
+                    Start location :
+                    <select ng-model="startLocation" ng-options="routeQueue.title for routeQueue in routeQueues" class="calculate-select">
+                    </select>
+                </div>
+                <div>
+                    End location :
+                    <select ng-model="endLocation" ng-options="routeQueue.title for routeQueue in routeQueues" class="calculate-select">
+                    </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary calculate-btn" data-dismiss='modal' ng-click="calculateRoute()">Calculate Route</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- more action -->
+        <div class="modal fade" id="moreActions" tabindex="-1" role="dialog" aria-labelledby="actionLable" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-body" style="padding: 0px;">
+                <ul class="nav nav-tabs more-actions-tab" role="tablist">
+                  <li role="presentation" class="active"><a href="#newTask" role="tab" data-toggle="tab">New Task</a></li>
+                  <li role="presentation"><a href="#newEvent" role="tab" data-toggle="tab">New Event</a></li>
+                  <li role="presentation"><a href="#logCall" role="tab" data-toggle="tab">Log a Call</a></li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content" style="display: block; padding: 5px 15px;">
+                  <div role="tabpanel" class="tab-pane active" id="newTask">
+                    <form role="form" name="taskForm">
+                        <div class="form-group">
+                            <label for="newTaskSubject">Subject</label>
+                            <input type="text" class="form-control" id="newTaskSubject" placeholder="" required="true" ng-model="task.subject"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="newTaskDate">Due Date</label>
+                            <!-- <input type="date" class="form-control" id="newTaskDate" placeholder="" ng-model="task.dueDate" required="true" /> -->
+                            <div class='input-group date' style="width: 100%">
+                                <datepicker date-format="yyyy-MM-dd">
+                                  <input  class="form-control" id="newTaskDate" ng-model="task.dueDate" required="true" />
+                                </datepicker>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="newTaskStatus">Status</label>
+                            <select id="newTaskStatus" class="form-control" ng-model="task.status">
+                                <option value="none">--None--</option>
+                                <option value="new">New</option>
+                                <option value="inProgress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newTaskPriority">Priority</label>
+                            <select id="newTaskPriority" class="form-control" ng-model="task.priority">
+                                <option value="none">--None--</option>
+                                <option value="high">High</option>
+                                <option value="normal">Normal</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="position: relative;">
+                            <label for="newTaskAssigned">Assigned To</label>
+                            <input type="text" class="form-control" id="newTaskAssigned" required="true" ng-model="taskLookup" ng-click="showLookup(1)"/>
+                            <span class="clear-lookup-btn" ng-click="cleanLookup('task')">&times;</span>
+                            <div class="lookup-drop-down" ng-show="isShowLookup">
+                                <p ng-repeat="user in lookupUsers.forTask | filter: taskLookup" ng-click="hideLookup(0, user, 'task')">{{user.FirstName + " " + user.LastName}}</p>
+                            </div>
+                        </div>
+                        <div class="more-actions-btns">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary calculate-btn" ng-class="{disabled: !!taskForm.$error.required}" data-dismiss='modal' ng-click="createNewTask()">Save</button>
+                        </div>
+                    </form>
+                  </div>
+                  <div role="tabpanel" class="tab-pane" id="newEvent">
+                      <form role="form" name="eventForm">
+                        <div class="form-group">
+                            <label for="newEventSubject">Subject</label>
+                            <input type="text" class="form-control" id="newEventSubject" placeholder="" ng-model="event.subject" required="true"/>
+                        </div>
+                        <div class="time-pick">
+                            <span style="width: 100%">Start</span>
+                            <div class="form-group" style="width: 50%; padding-right: 3px;">
+                                <label for="newEventStart">Date</label>
+                                <!-- <input type="date" class="form-control" id="newTaskDate" placeholder="" ng-model="event.startDate" required="true"/> -->
+                                <div class='input-group date' style="width: 100%">
+                                    <datepicker date-format="yyyy-MM-dd">
+                                      <input  class="form-control" id="newEventStart" ng-model="event.startDate" required="true" />
+                                    </datepicker>
+                                </div>
+                            </div>
+                            <div class="form-group" style="width: 50%; padding-left: 3px;">
+                                <label>Time</label>
+                                <input type="time" class="form-control" placeholder="" ng-model="event.startTime" required="true"/>
+                            </div>
+                        </div>
+                        <div class="time-pick">
+                            <span style="width: 100%">End</span>
+                            <div class="form-group" style="width: 50%; padding-right: 3px;">
+                                <label for="newEventEnd">Date</label>
+                                <!-- <input type="date" class="form-control" id="newTaskDate" placeholder="" ng-model="event.endDate" required="true"/> -->
+                                <div class='input-group date' style="width: 100%">
+                                    <datepicker date-format="yyyy-MM-dd">
+                                      <input  class="form-control" id="newEventEnd" ng-model="event.endDate" required="true" />
+                                    </datepicker>
+                                </div>
+                            </div>
+                            <div class="form-group" style="width: 50%; padding-left: 3px;">
+                                <label for="newEventStart">Time</label>
+                                <input type="time" class="form-control" id="newTaskDate" placeholder="" ng-model="event.endTime" required="true"/>
+                            </div>
+                        </div>
+                        <div class="form-group" style="position: relative;">
+                            <label for="newTaskAssigned">Assigned To</label>
+                            <input type="text" class="form-control" id="newTaskAssigned" required="true" ng-model="eventLookup" ng-click="showLookup(1)"/>
+                            <span class="clear-lookup-btn" ng-click="cleanLookup('event')">&times;</span>
+                            <div class="lookup-drop-down" ng-show="isShowLookup">
+                                <p ng-repeat="user in lookupUsers.forEvent | filter: eventLookup" ng-click="hideLookup(0, user, 'event')">{{user.FirstName + " " + user.LastName}}</p>
+                            </div>
+                        </div>
+                        <div class="more-actions-btns">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary calculate-btn" data-dismiss='modal' ng-class="{disabled: !!eventForm.$error.required}" ng-click="createNewEvent()">Save</button>
+                        </div>
+                      </form>
+                  </div>
+                  <div role="tabpanel" class="tab-pane" id="logCall">
+                      <form role="form" name="callForm">
+                        <div class="form-group">
+                            <label for="logCallSubject">Subject</label>
+                            <input type="text" class="form-control" id="logCallSubject" placeholder="" ng-model="phoneCall.subject" required="true" />
+                        </div>
+                        <div class="form-group">
+                            <label for="logCallComments">Comments</label>
+                            <textarea class="form-control" rows="3" id="logCallComments" ng-model="phoneCall.comments"></textarea>
+                        </div>
+                        <div class="more-actions-btns">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary calculate-btn" data-dismiss='modal' ng-class="{disabled: !!callForm.$error.required}" ng-click="logCall()">Save</button>
+                        </div>
+                      </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="successMessage">
+            <span>Success!</span>
+        </div>
+        <!-- error message -->
+        <div class="modal fade" id="errorMessage" tabindex="-1" role="dialog" aria-labelledby="routeError" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <div class="modal-title ftSz_xl_b" id="routeError">Error Message</div>
+              </div>
+              <div class="modal-body">
+                    {{errorMessage}}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    
+
+    <apex:include pageName="PwCCAPGoogleRoutingWizardApp"/>
+    <apex:include pageName="PwCCAPGoogleRoutingWizardController"/>
+    <apex:include pageName="PwCCAPGoogleRoutingWizardService"/>
+    <apex:include pageName="PwCCAPGoogleRoutingWizardUtil"/>
+    <apex:include pageName="PwCCAPGoogleRoutingWizardDirective"/>
+
+</body>
+</html>
+</apex:page>

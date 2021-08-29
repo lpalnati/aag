@@ -1,0 +1,29 @@
+.box-select {
+	-webkit-appearance: none;
+  	-moz-appearance: none;
+  	appearance: none;
+  	background: #000 url("../image/icon_dropdown.png") no-repeat right center;
+  	background-position-x: 170px;
+}
+
+.icon-no-of-people {
+	width: 36px;
+	height: 25px;
+	background-image: url("../image/icon_no_of_people.png");
+	display: inline-block;
+	background-size: contain;
+  	background-repeat: no-repeat;
+}
+
+.card-wrapper-fullscreen td:hover .icon-no-of-people {
+	background-image: url("../image/icon_no_of_people_white.png");
+}
+
+.icon-no-of-people-large {
+	width: 41px;
+	height: 28px;
+	background-image: url("../image/icon_no_of_people_large.png");
+	display: inline-block;
+	background-size: contain;
+  	background-repeat: no-repeat;
+}

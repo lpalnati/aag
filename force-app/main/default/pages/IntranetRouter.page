@@ -1,0 +1,16 @@
+<apex:page controller="IntranetRouterController" sidebar="false" showheader="false">
+<script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+<script>
+$(document).ready(function(){
+	if({!isSecurePageHasAccess} == false) {
+		alert('You are not authorized to view this secured page.');
+		window.location = document.referrer;
+	}else{
+		updateTotalValue();
+	}
+});	
+</script>
+<apex:form >
+	<apex:actionFunction name="updateTotalValue" action="{!updateTotalView}"/>
+</apex:form>
+</apex:page>

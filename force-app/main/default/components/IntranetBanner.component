@@ -1,0 +1,95 @@
+<apex:component controller="IntranetBannerController">
+<apex:attribute name="pageId" description="This is the Page Id for displaying intranet banner" type="String" assignTo="{!currentPageName}"/>
+<style>
+	a{
+		text-decoration: none;
+	}
+	.carousel li {
+		margin-right: 0px;
+	}
+	ul li, ol li {
+		margin-left: 0px;
+		padding-left: 0;
+	}
+	.slides {
+		z-index : 0 !important;
+	}
+	.flex-direction-nav a {
+		filter : alpha(opacity=0);
+	}
+	.flexslider:hover .flex-next {
+		filter : alpha(opacity=30);
+	}
+	.flexslider:hover .flex-prev {
+		filter : alpha(opacity=30);
+	}
+	.image {
+    position:relative;
+    overflow: hidden;
+	}
+	.image .text{
+	    position:absolute;
+	    top:10px;
+	    left:15px;
+	    width:98%;
+	}
+	.image .textLeft{
+	    position:absolute;
+	    top:10px;
+	    left:15px;
+	    width:50%;
+	}
+	.image .textRight{
+	    position:absolute;
+	    top:10px;
+	    left:50%;
+	    width:49%;
+	}
+	.image .textCenter{
+	    position:absolute;
+	    top: 0px;
+	    left:15%;
+	    width:70%;
+	}
+</style>
+<script type="text/javascript">
+    $(document).ready(function(){
+      $('.flexslider').flexslider({
+        animation: "slide",
+        width: 800,
+        slideshowSpeed: '{!banner_Roating_Speed}',
+        controlNav: false
+      });
+    });
+</script>
+<div class="flexslider" style="text-align:center;vertical-align:middle; background-color: #4A5A65;display:{!IF(banners.size > 0 ,'block','none')}">
+ 	<ul class="slides">
+     	<apex:repeat value="{!banners}" var="banner" id="bannerId">
+			<li style="font-size: 18px;color: black;">
+					<apex:outputLink value="{!banner.URL__c}" target="{!banner.Target__c}"  style="font-size: 18px;color: black; text-decoration: none;"  rendered="{!IF(AND(banner.Button_Label__c = NULL , banner.URL__c != NULL, banner.Attachments.size > 0),true,false)}">
+							<div class="image">
+								<img src="/servlet/servlet.FileDownload?file={!banner.Attachments[0].Id}&otherId=" alt="alternate text"/>
+								<div class="{!IF(banner.Position__c == 'Left','textLeft',IF(banner.Position__c == 'Right','textRight',IF(banner.Position__c == 'Center','textCenter','text')))}">	
+									<p id="{!IF(banner.Position__c == 'Left','bannerHeaderLeft',IF(banner.Position__c == 'Right','bannerHeaderRight',IF(banner.Position__c == 'Center','bannerHeaderCenter','bannerHeader')))}" style="{!IF(NOT(ISNULL(banner.Header_Color__c)),'color:'+banner.Header_Color__c,'')}">{!banner.Header__c}</p>
+			  					<p id="{!IF(banner.Position__c == 'Left','bannerSummaryLeft',IF(banner.Position__c == 'Right','bannerSummaryRight',IF(banner.Position__c == 'Center','bannerSummaryCenter','bannerSummary')))}" style="{!IF(NOT(ISNULL(banner.Summary_Color__c)),'color:'+banner.Summary_Color__c,'')}">{!banner.Summary__c}</p>
+		  					</div>
+							</div>
+					</apex:outputLink> 
+					<apex:outputPanel style="font-size: 18px;line-height: 25px;color: black;"  rendered="{!IF(AND(banner.Button_Label__c != NULL, banner.Attachments.size > 0),true,false)}">
+							<div class="image">
+								<img src="/servlet/servlet.FileDownload?file={!banner.Attachments[0].Id}&otherId=" alt="alternate text"/>
+								<div class="{!IF(banner.Position__c == 'Left','textLeft',IF(banner.Position__c == 'Right','textRight',IF(banner.Position__c == 'Center','textCenter','text')))}">
+									<p id="{!IF(banner.Position__c == 'Left','bannerHeaderLeft',IF(banner.Position__c == 'Right','bannerHeaderRight',IF(banner.Position__c == 'Center','bannerHeaderCenter','bannerHeader')))}" style="{!IF(NOT(ISNULL(banner.Header_Color__c)),'color:'+banner.Header_Color__c,'')}">{!banner.Header__c}</p>
+	  							<p id="{!IF(banner.Position__c == 'Left','bannerSummaryLeft',IF(banner.Position__c == 'Right','bannerSummaryRight',IF(banner.Position__c == 'Center','bannerSummaryCenter','bannerSummary')))}" style="{!IF(NOT(ISNULL(banner.Summary_Color__c)),'color:'+banner.Summary_Color__c,'')}">{!banner.Summary__c}</p>
+   								<p align="{!IF(banner.Button_Location__c == 'Left','Left',IF(banner.Button_Location__c == 'Right','Right','Center'))}">
+   									<a href="{!banner.URL__c}" target="{!banner.Target__c}" Id="bannerLabel">{!banner.Button_Label__c}</a>
+   								</p>
+	  						</div>	
+							</div>
+					</apex:outputPanel> 
+  	    </li>
+		</apex:repeat>
+  </ul>
+</div>
+<apex:image value="{!$Resource.HomeBanner}" style="height:310px;width:960px;" rendered="{!IF(banners.size > 0,false,true)}" styleclass="defaultBannerImage"/>
+</apex:component>

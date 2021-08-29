@@ -1,0 +1,96 @@
+<apex:page cache="true" expires="60" applyBodyTag="false" applyHtmlTag="false" showHeader="false" standardStylesheets="false">
+	<script>
+		routingWizard.utils
+		.factory('APIService',['$q',function($q){
+
+			var svc = {};
+
+			svc.invokeAction = function (method) {
+				debugger;
+		        //Visualforce.remoting.buffer = true;
+		        Visualforce.remoting.escape = false;
+		        //Visualforce.remoting.timeout = 30000;
+
+		        var deferred = $q.defer();
+		        var params = arguments;
+
+		        // this part is to clear angular injected [hash] in object while performing ng-repeat
+		        _(params).forEach(function(param, index) {
+
+		        	if (_.isObject(param)) {
+		        		var tmp1 = angular.toJson(param);
+		        		var tmp2 = angular.fromJson(tmp1);
+		        		params[index] = tmp2;
+		        	}
+		        });
+
+		        [].push.call(params, function(result, event) {
+		        	if (event.status) {
+		        		deferred.resolve(result);
+		        	}
+		        	else {
+		        		deferred.reject(event.message);
+		        	}
+		        });
+
+		        Visualforce.remoting.Manager.invokeAction.apply(Visualforce.remoting.Manager, params);
+		        return deferred.promise;
+		    };
+		    return svc;
+		}])
+		.factory('PagerService',function(){
+			// service definition
+			var service = {};
+			service.getPage = getPage;
+			return service;
+			//service implementation
+			function getPage(totalItems, currentPage, pageSize){
+				//default to first page
+				currentPage = currentPage || 1;
+				//default page size is 10
+				pageSize = pageSize || 10;
+				//calculate total pages
+				var totalPages = Math.ceil(totalItems / pageSize);
+
+				var startPage , endPage;
+				if(totalPages <= 10){
+					//less than 10 totalPages so show all
+					startPage = 1;
+					endPage = totalPages;
+				}else{
+					//more than 10 total pages so calulate start and end pages
+					if(currentPage <= 6 ){
+						startPage = 1;
+						endPage = 10;
+					}else if(currentPage + 4 >= totalPages){
+						startPage = totalPages - 9;
+						endPage = totalPages;
+					}else{
+						startPage = currentPage - 5;
+						endPage = currentPage + 4;
+					}
+				}
+
+				//calculate start and end indexes
+				var startIndex = (currentPage - 1) * pageSize;
+				var endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
+
+				//create an array of pages to ng-repeate in the pager control
+				var pages = _.range(startPage, endPage + 1);
+
+				//return object with all pager properties required by the view
+				return {
+					totalItems: totalItems,
+					currentPage: currentPage,
+					pageSize: pageSize,
+					totalPages: totalPages,
+					startPage: startPage,
+					endPage: endPage,
+					startIndex: startIndex,
+					endIndex: endIndex,
+					pages: pages
+				};
+			}
+		})
+	</script>
+</apex:page>

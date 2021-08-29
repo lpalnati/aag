@@ -1,0 +1,140 @@
+<apex:page controller="IntranetMySubmittedFormDetailController" sidebar="false" showheader="false" id="pg">
+<head>
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/jquery-1.8.2.min.js"></script>
+    <link rel="Stylesheet" type="text/css" href="{!$Resource.IntranetDesign}/css/desktop.css"></link>
+    <link rel="stylesheet" media="screen and (min-device-width : 320px) and (max-device-width : 767px)" href="{!$Resource.IntranetDesign}/css/phone.css" />
+    <link rel="shortcut icon" href="{!$Resource.Intranetfavicon}" type="shortuct/ico" />
+    <script type="text/javascript" src="{!$Resource.IntranetDesign}/js/script.js"></script>
+    <meta name="viewport" content="width=320, user-scalable=no"/>
+    <style>
+      ul li, ol li {
+         margin-left: 0px;
+         padding-left: 0;
+      }
+			.bRelatedList .bPageBlock .pbButton{
+				display:none;
+			}
+			body .pbBody table.list .actionColumn{
+				display:none;
+			}
+			body .bRelatedList .actionColumn{
+				display:none;
+			}
+			th{
+				white-space: normal !important;
+			}
+			.list .headerRow th{
+				white-space: normal !important;
+			}
+    </style>
+    <script>
+	    $(document).ready(function () {
+				$('#dialog-overlay').hide();
+				$('#dialog-box').hide();
+				$('.pShowMore a:nth-child(2)').remove();
+				if($('.pShowMore').text() != '')
+					$('.pShowMore').html($('.pShowMore').html().replace('|',''));
+				$('.pbTitle h3').text('Reviewer History');	
+				$('.headerRow th:nth-child(5)').text('Actual Reviewer');
+				$("#menuDiv ul:first > li:first").removeClass("active");
+			});
+    	
+    	function submitForApproval() {
+    		var result = confirm('Once you submit this record for review, you might not be able to edit it. Continue?');
+    		if(result == true) 
+    			submitApproval();
+    		else	
+    		 return false;
+    	}
+    	
+    	function openPopup(message) {
+				$('#dialog-overlay').addClass('popupBackground').show();
+				$('#dialog-box').addClass('approvalModal').show();
+				$('#dialog-overlay').fadeIn('slow');
+        $('#dialog-box').fadeIn('slow');
+        $(".approvalModal").css('top',($(document).scrollTop()+100)+'px');
+				if(screen.width <= 480 || navigator.userAgent.match(/Android/i) 
+															 || navigator.userAgent.match(/webOS/i) 
+															 || navigator.userAgent.match(/iPhone/i) 
+															 || navigator.userAgent.match(/iPod/i)) {   
+        	$(".approvalModal").css('left','0px');
+      	}else{
+        	$(".approvalModal").css('left',((screen.width - document.getElementById('dialog-box').offsetWidth)/2));
+      	}
+			}
+			
+			function closePopup() {
+      	$('#dialog-overlay').fadeOut('slow');
+      	$('#dialog-box').fadeOut('slow');
+      	$('#dialog-overlay').removeClass('popupBackground');
+      	$('#dialog-box').removeClass('approvalModal');
+    	}    	
+    </script>
+</head>
+<body>
+<apex:form >
+<apex:actionFunction name="submitApproval" action="{!submitForApproval}" />
+</apex:form>
+<div class="wrapper">
+    <c:IntranetHeader />
+    <div class="content">
+    <c:IntranetMenu />
+    <p class="contentTitle">{!formDetail.form_Type__r.Name}</p>
+        <apex:pageMessages id="error"/>
+        <div class="resultBlock">
+            <h3 style="display: block;">
+            	<div style="float:left;">Form Information</div>
+            	<div style="float:left;margin-top:2px;" class="topBtn" align="center">
+								<a href="/apex/IntranetSubmitForm?formTypeId={!formDetail.form_Type__c}&Id={!formDetail.Id}" class="grayBtn" style="{!IF(formDetail.Locked__c == true,'display:none;','float:none;')}"><span><span>Edit</span></span></a>
+								<a href="javascript:void(0);" onclick="submitForApproval();" class="grayBtn" style="{!IF(formDetail.Locked__c == true,'display:none;','float:none;')}"><span><span>Submit</span></span></a>		
+								<a href="javascript:void(0);" onclick="openPopup();" id="recallButton" class="grayBtn" style="{!IF(OR(formDetail.Locked__c == false,formDetail.Status__c == 'Approved',formDetail.Skip_Reviewer__c == true),'display:none;','float:none;')}"><span><span>Recall Reviewer Request</span></span></a>
+             		<a href="/apex/IntranetSubmittedFormList" class="grayBtn" style="float:none;"><span><span>Back</span></span></a>
+       				</div>	
+            </h3>
+            <div class="form">
+             <apex:repeat value="{!intranetformFieldList}" var="field">  
+             	<div class="formLine">
+                <label>{!$ObjectType.Intranet_Form__c.fields[field.Field_API_Name__c].label} : </label>
+	              <div class="formValue"> 
+                  <apex:OutputField value="{!formDetail[field.Field_API_Name__c]}" styleClass="text" style="float:left;"/>
+                </div>
+                <div class="clear"></div>
+              </div>  
+             </apex:repeat>
+             <div align="center" style="width:100%">
+							<a href="/apex/IntranetSubmitForm?formTypeId={!formDetail.form_Type__c}&Id={!formDetail.Id}" class="grayBtn" style="{!IF(formDetail.Locked__c == true,'display:none;','float:none;')}"><span><span>Edit</span></span></a>
+							<a href="javascript:void(0);" onclick="submitForApproval();" class="grayBtn" style="{!IF(formDetail.Locked__c == true,'display:none;','float:none;')}"><span><span>Submit</span></span></a>		
+							<a href="javascript:void(0);" onclick="openPopup();" id="recallButton" class="grayBtn" style="{!IF(OR(formDetail.Locked__c == false,formDetail.Status__c == 'Approved',formDetail.Skip_Reviewer__c == true),'display:none;','float:none;')}"><span><span>Recall Reviewer Request</span></span></a>
+             	<a href="/apex/IntranetSubmittedFormList" class="grayBtn" style="float:none;"><span><span>Back</span></span></a>
+       			</div>
+       			<div style="margin-top:5%;">
+              <apex:relatedList subject="{!formDetail.Id}" list="ProcessSteps" rendered="{!formDetail.Skip_Reviewer__c == false}"/>
+           </div>  
+          </div>
+        </div>
+    </div>
+</div>
+<c:IntranetFooter />  
+<div id="dialog-overlay" style="display:none;height: 600%;"></div>
+<div id="dialog-box">
+	<div class="dialog-content">
+		<div id="dialog-message">
+			<apex:form > 
+				<apex:actionFunction name="recallApproval" action="{!recallApprovalRequest}" /> 
+				<label>Comments : </label>
+				<apex:inputTextarea rows="3" value="{!comments}" styleClass="commentText"></apex:inputTextarea>
+				<div align="center" style="width:95%">
+					<a href="javascript:void(0);" onclick="recallApproval();" class="grayBtn" style="float:none;"><span><span>Recall Approval Request</span></span></a>
+					<a href="javascript:void(0);" onclick="closePopup();" class="grayBtn" style="float:none;"><span><span>Cancel</span></span></a>
+				</div>
+			</apex:form>
+		</div>
+	</div>
+</div>  
+</body>
+<script>
+$(document).ready(function () {
+	$("#menuDiv ul:first > li:first").removeClass("active");
+});
+</script>
+</apex:page>
